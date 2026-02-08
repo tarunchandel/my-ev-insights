@@ -1,11 +1,13 @@
 import React, { useState, useMemo } from 'react';
 import { useApp } from '../context/AppContext';
+import { useToast } from '../components/Toast';
 import { Calendar, Coins, Activity, Wrench, FileText, Tag, Edit2, Trash2, X, PieChart, TrendingUp, DollarSign } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { ResponsiveContainer, PieChart as RePieChart, Pie, Cell, Tooltip, BarChart, Bar, XAxis, YAxis, CartesianGrid } from 'recharts';
 
 const Expenses = () => {
     const { addExpense, updateExpense, deleteExpense, expenses, settings } = useApp();
+    const { showToast } = useToast();
     const [editingId, setEditingId] = useState(null);
 
     const initialForm = {
@@ -62,10 +64,10 @@ const Expenses = () => {
         if (editingId) {
             updateExpense(payload);
             setEditingId(null);
-            alert('Record Updated!');
+            showToast('Record updated! ✨', 'success');
         } else {
             addExpense(payload);
-            alert('Expense Saved!');
+            showToast('Expense saved! 💰', 'success');
         }
 
         setFormData(initialForm);
@@ -93,7 +95,8 @@ const Expenses = () => {
     return (
         <div className="flex flex-col gap-6">
             <header>
-                <h1>Service Logs</h1>
+                <h1>Car Care Diary 🛠️</h1>
+                <p className="text-sm text-secondary">Track maintenance costs</p>
             </header>
 
             {/* Overview Tiles */}
@@ -103,7 +106,7 @@ const Expenses = () => {
                         <Coins size={20} />
                     </div>
                     <div>
-                        <span className="text-secondary text-xs uppercase font-medium">Total Expenses</span>
+                        <span className="text-secondary text-xs uppercase font-medium">Wallet Impact 💸</span>
                         <div className="text-2xl font-bold text-white">{settings.currency}{stats.total.toLocaleString()}</div>
                     </div>
                 </div>
@@ -113,7 +116,7 @@ const Expenses = () => {
                         <Tag size={20} />
                     </div>
                     <div>
-                        <span className="text-secondary text-xs uppercase font-medium">Top Category</span>
+                        <span className="text-secondary text-xs uppercase font-medium">Biggest Flex 💪</span>
                         <div className="text-lg font-bold text-white truncate">{stats.topCat.name}</div>
                         <div className="text-xs text-white/50">{settings.currency}{stats.topCat.value.toLocaleString()}</div>
                     </div>
@@ -135,7 +138,7 @@ const Expenses = () => {
 
                     {/* Chart */}
                     <div className="glass-panel p-4 flex flex-col items-center">
-                        <h3 className="text-xs uppercase text-secondary font-medium mb-2 w-full text-left">Spending Distribution</h3>
+                        <h3 className="text-xs uppercase text-secondary font-medium mb-2 w-full text-left">Where's My Money? 🤔</h3>
                         <div className="w-full h-48">
                             <ResponsiveContainer width="100%" height="100%">
                                 <RePieChart>
@@ -174,7 +177,7 @@ const Expenses = () => {
 
             <form onSubmit={handleSubmit} className={`glass-panel p-6 flex flex-col gap-4 ${editingId ? 'border-primary/50' : ''}`}>
                 <div className="flex justify-between items-center">
-                    <h3 className="text-white text-sm font-normal">{editingId ? 'Edit Record' : 'Add Expense'}</h3>
+                    <h3 className="text-white text-sm font-normal">{editingId ? 'Edit the Record ✏️' : 'Log Some Care 🔧'}</h3>
                     {editingId && <button type="button" onClick={cancelEdit}><X size={16} /></button>}
                 </div>
 
@@ -209,12 +212,15 @@ const Expenses = () => {
 
                 <button type="submit" className="primary-btn mt-2 flex items-center justify-center gap-2">
                     {editingId ? <Edit2 size={18} /> : <Wrench size={18} />}
-                    {editingId ? 'Update Record' : 'Save Record'}
+                    {editingId ? 'Lock it in! 🔒' : 'Save the Vibes! ✨'}
                 </button>
             </form>
 
             <div className="flex flex-col gap-3">
-                <h3>History</h3>
+                <div>
+                    <h3>The Care Log 📖</h3>
+                    <p className="text-xs text-secondary">Expense history</p>
+                </div>
                 <AnimatePresence>
                     {expenses.map((item, i) => (
                         <motion.div
@@ -249,7 +255,7 @@ const Expenses = () => {
                         </motion.div>
                     ))}
                 </AnimatePresence>
-                {expenses.length === 0 && <p className="text-center text-sm text-secondary">No records found.</p>}
+                {expenses.length === 0 && <p className="text-center text-sm text-secondary">No care logs yet – your ride is good to go! 🚗✨</p>}
             </div>
         </div>
     );

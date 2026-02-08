@@ -1,10 +1,12 @@
 import React from 'react';
 import { useApp } from '../context/AppContext';
+import { useToast } from '../components/Toast';
 import { Moon, Sun, Monitor, Car, CreditCard, Download, FileText, Globe, Coins, Ruler } from 'lucide-react';
 import { motion } from 'framer-motion';
 
 const Settings = () => {
     const { settings, updateSettings, charges, bills, expenses, restoreData } = useApp();
+    const { showToast } = useToast();
 
     const themes = [
         { id: 'dark', label: 'Dark', icon: Moon },
@@ -29,7 +31,7 @@ const Settings = () => {
 
     const exportToCSV = (data, filename) => {
         if (!data || data.length === 0) {
-            alert('No data to export.');
+            showToast('No data to export', 'warning');
             return;
         }
         const headers = Object.keys(data[0]);
@@ -56,9 +58,9 @@ const Settings = () => {
             try {
                 const data = JSON.parse(event.target.result);
                 restoreData(data);
-                alert('Data restored successfully!');
+                showToast('Data restored successfully! 🎉', 'success');
             } catch (err) {
-                alert('Invalid backup file');
+                showToast('Invalid backup file', 'error');
             }
         };
         reader.readAsText(file);
@@ -67,63 +69,80 @@ const Settings = () => {
     return (
         <div className="flex flex-col gap-6">
             <header>
-                <h1>Settings</h1>
+                <h1>Setup Vibes ⚙️</h1>
+                <p className="text-sm text-secondary">App preferences</p>
             </header>
 
             {/* Appearance */}
             <div className="glass-panel p-6">
                 <h3 className="mb-4 flex items-center gap-2 text-primary">
-                    <Monitor size={18} /> Appearance
+                    <Monitor size={18} /> Look & Feel 🎨
                 </h3>
-                <div className="flex bg-black/10 dark:bg-black/40 p-1 rounded-xl">
-                    {themes.map((theme) => (
+                <div className="flex flex-col gap-1">
+                    <span className="text-xs text-secondary">Theme</span>
+                    <div className="flex gap-2">
                         <button
-                            key={theme.id}
-                            onClick={() => updateSettings({ theme: theme.id })}
-                            className={`flex-1 py-3 rounded-lg text-sm font-medium flex items-center justify-center gap-2 transition-all ${settings.theme === theme.id
-                                ? 'bg-primary text-white shadow-lg'
-                                : 'text-secondary hover:text-primary'
+                            onClick={() => updateSettings({ theme: 'dark' })}
+                            className={`flex items-center gap-2 px-4 py-2 rounded-full text-sm font-medium transition-all border-2 ${settings.theme === 'dark'
+                                ? 'bg-violet-500/20 border-violet-500 text-violet-400'
+                                : 'bg-transparent border-transparent text-secondary hover:border-white/20'
                                 }`}
                         >
-                            <theme.icon size={16} />
-                            {theme.label}
+                            <Moon size={14} />
+                            Dark
                         </button>
-                    ))}
+                        <button
+                            onClick={() => updateSettings({ theme: 'light' })}
+                            className={`flex items-center gap-2 px-4 py-2 rounded-full text-sm font-medium transition-all border-2 ${settings.theme === 'light'
+                                ? 'bg-amber-500/20 border-amber-500 text-amber-400'
+                                : 'bg-transparent border-transparent text-secondary hover:border-white/20'
+                                }`}
+                        >
+                            <Sun size={14} />
+                            Light
+                        </button>
+                    </div>
                 </div>
             </div>
 
             {/* Localization */}
             <div className="glass-panel p-6">
                 <h3 className="mb-4 flex items-center gap-2 text-primary">
-                    <Globe size={18} /> Localization
+                    <Globe size={18} /> Local Vibes 🌍
                 </h3>
-                <div className="flex flex-col gap-4">
+                <div className="grid grid-cols-2 gap-4">
                     <label className="flex flex-col gap-1">
-                        <span className="text-xs text-secondary flex items-center gap-1"><Coins size={12} /> Currency Symbol</span>
+                        <span className="text-xs text-secondary flex items-center gap-1"><Coins size={12} /> Currency</span>
                         <input
                             type="text"
                             name="currency"
                             value={settings.currency}
                             onChange={handleChange}
-                            placeholder="e.g. ₹, $, €"
+                            placeholder="e.g. ₹, $"
                         />
                     </label>
 
                     <div className="flex flex-col gap-1">
-                        <span className="text-xs text-secondary flex items-center gap-1"><Ruler size={12} /> Distance Unit</span>
-                        <div className="flex bg-black/10 dark:bg-black/40 p-1 rounded-xl">
-                            {['km', 'mi'].map((unit) => (
-                                <button
-                                    key={unit}
-                                    onClick={() => updateSettings({ distanceUnit: unit })}
-                                    className={`flex-1 py-2 rounded-lg text-sm font-medium uppercase transition-all ${settings.distanceUnit === unit
-                                        ? 'bg-primary text-white shadow-lg'
-                                        : 'text-secondary hover:text-white'
-                                        }`}
-                                >
-                                    {unit === 'km' ? 'Kilometers' : 'Miles'}
-                                </button>
-                            ))}
+                        <span className="text-xs text-secondary flex items-center gap-1"><Ruler size={12} /> Distance</span>
+                        <div className="flex gap-1">
+                            <button
+                                onClick={() => updateSettings({ distanceUnit: 'km' })}
+                                className={`flex items-center gap-1 px-3 py-2 rounded-full text-xs font-medium transition-all border-2 ${settings.distanceUnit === 'km'
+                                    ? 'bg-cyan-500/20 border-cyan-500 text-cyan-400'
+                                    : 'bg-transparent border-transparent text-secondary hover:border-white/20'
+                                    }`}
+                            >
+                                km
+                            </button>
+                            <button
+                                onClick={() => updateSettings({ distanceUnit: 'mi' })}
+                                className={`flex items-center gap-1 px-3 py-2 rounded-full text-xs font-medium transition-all border-2 ${settings.distanceUnit === 'mi'
+                                    ? 'bg-orange-500/20 border-orange-500 text-orange-400'
+                                    : 'bg-transparent border-transparent text-secondary hover:border-white/20'
+                                    }`}
+                            >
+                                mi
+                            </button>
                         </div>
                     </div>
                 </div>
@@ -132,7 +151,7 @@ const Settings = () => {
             {/* Vehicle Profile */}
             <div className="glass-panel p-6">
                 <h3 className="mb-4 flex items-center gap-2 text-primary">
-                    <Car size={18} /> Vehicle Profile
+                    <Car size={18} /> Car Identity 🚗
                 </h3>
                 <div className="flex flex-col gap-4">
                     <label className="flex flex-col gap-1">
@@ -145,33 +164,35 @@ const Settings = () => {
                             placeholder="e.g. Nexon EV"
                         />
                     </label>
-                    <label className="flex flex-col gap-1">
-                        <span className="text-xs text-secondary">Battery Size (kWh)</span>
-                        <input
-                            type="number"
-                            name="batterySize"
-                            value={settings.batterySize}
-                            onChange={handleChange}
-                            placeholder="e.g. 40.5"
-                        />
-                    </label>
-                    <label className="flex flex-col gap-1">
-                        <span className="text-xs text-secondary">Est. Home Rate ({settings.currency}/unit)</span>
-                        <input
-                            type="number"
-                            name="homeRate"
-                            value={settings.homeRate}
-                            onChange={handleChange}
-                            placeholder="e.g. 8.0"
-                        />
-                    </label>
+                    <div className="grid grid-cols-2 gap-4">
+                        <label className="flex flex-col gap-1">
+                            <span className="text-xs text-secondary">Battery (kWh)</span>
+                            <input
+                                type="number"
+                                name="batterySize"
+                                value={settings.batterySize}
+                                onChange={handleChange}
+                                placeholder="e.g. 40.5"
+                            />
+                        </label>
+                        <label className="flex flex-col gap-1">
+                            <span className="text-xs text-secondary">Home Rate ({settings.currency}/unit)</span>
+                            <input
+                                type="number"
+                                name="homeRate"
+                                value={settings.homeRate}
+                                onChange={handleChange}
+                                placeholder="e.g. 8.0"
+                            />
+                        </label>
+                    </div>
                 </div>
             </div>
 
             {/* Data Export */}
             <div className="glass-panel p-6">
                 <h3 className="mb-4 flex items-center gap-2 text-primary">
-                    <Download size={18} /> Data Management
+                    <Download size={18} /> Data Stash 📦
                 </h3>
                 <div className="flex flex-col gap-3">
                     <button
@@ -183,7 +204,7 @@ const Settings = () => {
                                 <FileText size={18} />
                             </div>
                             <div className="flex flex-col">
-                                <span className="text-sm font-medium text-white">Export Charging Logs</span>
+                                <span className="text-sm font-medium text-white">Export Juice Logs ⚡</span>
                                 <span className="text-[10px] text-secondary">Download as .csv</span>
                             </div>
                         </div>
@@ -199,7 +220,7 @@ const Settings = () => {
                                 <FileText size={18} />
                             </div>
                             <div className="flex flex-col">
-                                <span className="text-sm font-medium text-white">Export Meter Logs</span>
+                                <span className="text-sm font-medium text-white">Export Power Logs 💡</span>
                                 <span className="text-[10px] text-secondary">Download as .csv</span>
                             </div>
                         </div>
@@ -217,8 +238,8 @@ const Settings = () => {
                                 <Download size={18} />
                             </div>
                             <div className="flex flex-col">
-                                <span className="text-sm font-medium text-white">Backup Data</span>
-                                <span className="text-[10px] text-secondary">Save everything as JSON</span>
+                                <span className="text-sm font-medium text-white">Backup Everything 🛡️</span>
+                                <span className="text-[10px] text-secondary">Keep your data safe!</span>
                             </div>
                         </div>
                     </button>
@@ -229,8 +250,8 @@ const Settings = () => {
                                 <FileText size={18} />
                             </div>
                             <div className="flex flex-col">
-                                <span className="text-sm font-medium text-white">Restore Data</span>
-                                <span className="text-[10px] text-secondary">Import JSON backup</span>
+                                <span className="text-sm font-medium text-white">Bring it Back 🔄</span>
+                                <span className="text-[10px] text-secondary">Restore from backup</span>
                             </div>
                         </div>
                         <input type="file" accept=".json" onChange={importBackup} className="hidden" />
@@ -239,7 +260,7 @@ const Settings = () => {
             </div>
 
             <p className="text-center text-xs text-secondary mt-2">
-                Version 1.0.2
+                Version 1.0.2 – Made with ❤️
             </p>
         </div>
     );

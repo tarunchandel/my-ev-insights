@@ -1,21 +1,26 @@
 import React, { useState } from 'react';
 import { useApp } from '../context/AppContext';
-import { Zap, Calendar, Coins, Activity, BatteryCharging, Edit2, Trash2, X, Home } from 'lucide-react';
+import { useToast } from '../components/Toast';
+import { Zap, Calendar, Coins, Activity, BatteryCharging, Edit2, Trash2, X, Home, MapPin, FileText } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 
 const Charging = () => {
     const { addCharge, updateCharge, deleteCharge, charges, settings } = useApp();
+    const { showToast } = useToast();
     const [editingId, setEditingId] = useState(null);
 
     const initialForm = {
         date: new Date().toISOString().split('T')[0],
         time: new Date().toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' }),
+        endTime: '',
         type: 'Public',
         odometer: '',
         startPct: '',
         batteryPct: '',
-        units: '',
+        startUnits: '',
+        endUnits: '',
         cost: '',
+        note: '',
     };
 
     const [formData, setFormData] = useState(initialForm);
@@ -30,12 +35,15 @@ const Charging = () => {
         setFormData({
             date: dt.toISOString().split('T')[0],
             time: dt.toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' }),
+            endTime: charge.endTime || '',
             type: charge.type,
             odometer: charge.odometer || '',
             startPct: charge.startPct || '',
             batteryPct: charge.batteryPct || '',
-            units: charge.units,
-            cost: charge.cost,
+            startUnits: charge.startUnits || '',
+            endUnits: charge.endUnits || charge.units || '',
+            cost: charge.cost || '',
+            note: charge.note || '',
         });
         window.scrollTo({ top: 0, behavior: 'smooth' });
     };
@@ -53,7 +61,11 @@ const Charging = () => {
 
     const handleSubmit = (e) => {
         e.preventDefault();
-        if (!formData.odometer || !formData.cost || !formData.units) return;
+        // All fields are optional - user can edit later
+
+        const startU = Number(formData.startUnits) || 0;
+        const endU = Number(formData.endUnits) || 0;
+        const units = endU > startU ? (endU - startU) : (endU || 0);
 
         let drivenKm = 0;
         const lastCharge = charges[0];
@@ -66,6 +78,9 @@ const Charging = () => {
         const payload = {
             ...formData,
             id: editingId || undefined,
+            units: units,
+            startUnits: formData.startUnits,
+            endUnits: formData.endUnits,
             drivenKm: drivenKm > 0 ? drivenKm : 0,
             timestamp: new Date(`${formData.date}T${formData.time}`).getTime(),
         };
@@ -73,10 +88,10 @@ const Charging = () => {
         if (editingId) {
             updateCharge(payload);
             setEditingId(null);
-            alert('Session Updated!');
+            showToast('Session updated! ✨', 'success');
         } else {
             addCharge(payload);
-            alert('Session Saved!');
+            showToast('Session saved! ⚡', 'success');
         }
 
         setFormData(initialForm);
@@ -88,7 +103,10 @@ const Charging = () => {
     return (
         <div className="flex flex-col gap-6">
             <header className="flex justify-between items-center">
-                <h1>{editingId ? 'Edit Charge' : 'Add Charge'}</h1>
+                <div>
+                    <h1>{editingId ? 'Tweak the Juice ⚡' : 'Fuel Up! 🔋'}</h1>
+                    <p className="text-sm text-secondary mt-1">{editingId ? 'Edit charging session' : 'Log a charging session'}</p>
+                </div>
                 <div className="relative w-8 h-12 border-2 border-white/30 rounded-md p-0.5">
                     <div className="w-4 h-1 bg-white/30 absolute -top-2 left-1.5 rounded-t-sm"></div>
                     <motion.div
@@ -104,63 +122,95 @@ const Charging = () => {
             <form onSubmit={handleSubmit} className={`glass-panel p-6 flex flex-col gap-4 ${editingId ? 'border-primary/50' : ''}`}>
                 {editingId && (
                     <div className="flex justify-between items-center bg-primary/20 p-2 rounded-lg mb-2">
-                        <span className="text-sm text-primary font-medium">Editing session...</span>
+                        <span className="text-sm text-primary font-medium">Tweaking your juice session... ✏️</span>
                         <button type="button" onClick={cancelEdit}><X size={16} /></button>
                     </div>
                 )}
 
-                <div className="flex bg-black/20 dark:bg-black/40 p-1 rounded-xl">
-                    {['Home', 'Public'].map((type) => (
+                <div className="flex flex-col gap-1">
+                    <span className="text-xs text-secondary">Charging Type</span>
+                    <div className="flex gap-2">
                         <button
-                            key={type}
                             type="button"
-                            onClick={() => setFormData({ ...formData, type })}
-                            className={`flex-1 py-2 rounded-lg text-sm font-medium transition-all ${formData.type === type ? 'bg-primary text-white shadow-lg' : 'text-secondary hover:text-white'
+                            onClick={() => setFormData({ ...formData, type: 'Home' })}
+                            className={`flex items-center gap-2 px-4 py-2 rounded-full text-sm font-medium transition-all border-2 ${formData.type === 'Home'
+                                ? 'bg-emerald-500/20 border-emerald-500 text-emerald-400'
+                                : 'bg-transparent border-transparent text-secondary hover:border-white/20'
                                 }`}
                         >
-                            {type}
+                            <Home size={14} />
+                            Home
                         </button>
-                    ))}
+                        <button
+                            type="button"
+                            onClick={() => setFormData({ ...formData, type: 'Public' })}
+                            className={`flex items-center gap-2 px-4 py-2 rounded-full text-sm font-medium transition-all border-2 ${formData.type === 'Public'
+                                ? 'bg-blue-500/20 border-blue-500 text-blue-400'
+                                : 'bg-transparent border-transparent text-secondary hover:border-white/20'
+                                }`}
+                        >
+                            <MapPin size={14} />
+                            Public
+                        </button>
+                    </div>
                 </div>
 
                 <div className="grid grid-cols-2 gap-4">
                     <label className="flex flex-col gap-1">
                         <span className="text-xs text-secondary flex items-center gap-1"><Calendar size={12} /> Date</span>
-                        <input type="date" name="date" value={formData.date} onChange={handleChange} required />
+                        <input type="date" name="date" value={formData.date} onChange={handleChange} />
                     </label>
                     <label className="flex flex-col gap-1">
-                        <span className="text-xs text-secondary">Time</span>
-                        <input type="time" name="time" value={formData.time} onChange={handleChange} required />
+                        <span className="text-xs text-secondary">Start Time</span>
+                        <input type="time" name="time" value={formData.time} onChange={handleChange} />
                     </label>
                 </div>
 
                 <div className="grid grid-cols-2 gap-4">
                     <label className="flex flex-col gap-1">
-                        <span className="text-xs text-secondary flex items-center gap-1"><Activity size={12} /> Odometer ({settings.distanceUnit})</span>
-                        <input type="number" name="odometer" placeholder="e.g. 3450" value={formData.odometer} onChange={handleChange} required />
+                        <span className="text-xs text-secondary">End Time</span>
+                        <input type="time" name="endTime" value={formData.endTime} onChange={handleChange} placeholder="Optional" />
                     </label>
+                    <label className="flex flex-col gap-1">
+                        <span className="text-xs text-secondary flex items-center gap-1"><Activity size={12} /> Odometer ({settings.distanceUnit})</span>
+                        <input type="number" name="odometer" placeholder="e.g. 3450" value={formData.odometer} onChange={handleChange} />
+                    </label>
+                </div>
+
+                <div className="grid grid-cols-2 gap-4">
                     <label className="flex flex-col gap-1">
                         <span className="text-xs text-secondary flex items-center gap-1"><BatteryCharging size={12} /> Start %</span>
                         <input type="number" name="startPct" placeholder="e.g. 20" value={formData.startPct} onChange={handleChange} />
                     </label>
-                </div>
-
-                <div className="grid grid-cols-2 gap-4">
                     <label className="flex flex-col gap-1">
                         <span className="text-xs text-secondary flex items-center gap-1"><BatteryCharging size={12} /> End %</span>
                         <input type="number" name="batteryPct" placeholder="e.g. 80" value={formData.batteryPct} onChange={handleChange} />
                     </label>
+                </div>
 
+                <div className="grid grid-cols-2 gap-4">
                     <label className="flex flex-col gap-1">
-                        <span className="text-xs text-secondary flex items-center gap-1"><Zap size={12} /> Units (kWh)</span>
-                        <input type="number" step="0.1" name="units" placeholder="e.g. 20.5" value={formData.units} onChange={handleChange} required />
+                        <span className="text-xs text-secondary flex items-center gap-1"><Zap size={12} /> Start kWh</span>
+                        <input type="number" step="0.1" name="startUnits" placeholder="e.g. 100.5" value={formData.startUnits} onChange={handleChange} />
+                    </label>
+                    <label className="flex flex-col gap-1">
+                        <span className="text-xs text-secondary flex items-center gap-1"><Zap size={12} /> End kWh</span>
+                        <input type="number" step="0.1" name="endUnits" placeholder="e.g. 120.5" value={formData.endUnits} onChange={handleChange} />
                     </label>
                 </div>
 
-                <label className="flex flex-col gap-1">
-                    <span className="text-xs text-secondary flex items-center gap-1"><Coins size={12} /> Cost ({settings.currency})</span>
-                    <input type="number" name="cost" placeholder="e.g. 400" value={formData.cost} onChange={handleChange} required />
-                </label>
+                <div className="grid grid-cols-2 gap-4">
+                    <label className="flex flex-col gap-1">
+                        <span className="text-xs text-secondary flex items-center gap-1"><Coins size={12} /> Cost ({settings.currency})</span>
+                        <input type="number" name="cost" placeholder="e.g. 400" value={formData.cost} onChange={handleChange} />
+                    </label>
+                    <label className="flex flex-col gap-1">
+                        <span className="text-xs text-secondary flex items-center gap-1"><FileText size={12} /> Note</span>
+                        <input type="text" name="note" placeholder="e.g. Mall" value={formData.note} onChange={handleChange} />
+                    </label>
+                </div>
+
+                <p className="text-xs text-secondary text-center py-2 opacity-70">💡 All fields are optional — you can edit them later!</p>
 
                 <motion.button
                     whileTap={{ scale: 0.95 }}
@@ -168,12 +218,15 @@ const Charging = () => {
                     className="primary-btn mt-2 flex items-center justify-center gap-2"
                 >
                     {editingId ? <Edit2 size={18} /> : <Zap size={18} />}
-                    {editingId ? 'Update Session' : 'Save Session'}
+                    {editingId ? 'Lock it in! 🔒' : 'Save the Juice! ⚡'}
                 </motion.button>
             </form>
 
             <div className="flex flex-col gap-3">
-                <h3>History</h3>
+                <div>
+                    <h3>The Juice Log 📝</h3>
+                    <p className="text-xs text-secondary">Charging history</p>
+                </div>
                 <AnimatePresence>
                     {charges.map((charge) => (
                         <motion.div
@@ -205,7 +258,7 @@ const Charging = () => {
                         </motion.div>
                     ))}
                 </AnimatePresence>
-                {charges.length === 0 && <p className="text-center text-sm text-secondary">No history yet.</p>}
+                {charges.length === 0 && <p className="text-center text-sm text-secondary">No juice history yet – time to hit the charger! 🔌</p>}
             </div>
         </div>
     );

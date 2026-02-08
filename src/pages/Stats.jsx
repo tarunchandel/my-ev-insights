@@ -38,7 +38,7 @@ const Stats = () => {
 
         return [
             {
-                title: 'Cost Analysis',
+                title: 'Money Talks 💰',
                 icon: Coins,
                 color: 'text-blue-200',
                 gradient: 'linear-gradient(135deg, rgba(59, 130, 246, 0.15), rgba(168, 85, 247, 0.15))',
@@ -50,7 +50,7 @@ const Stats = () => {
                 ]
             },
             {
-                title: 'Range Efficiency',
+                title: 'Road Mastery 🛣️',
                 icon: Activity,
                 color: 'text-emerald-200',
                 gradient: 'linear-gradient(135deg, rgba(16, 185, 129, 0.15), rgba(20, 184, 166, 0.15))',
@@ -62,7 +62,7 @@ const Stats = () => {
                 ]
             },
             {
-                title: 'Energy Spec',
+                title: 'Power Profile ⚡',
                 icon: Zap,
                 color: 'text-orange-200',
                 gradient: 'linear-gradient(135deg, rgba(249, 115, 22, 0.15), rgba(239, 68, 68, 0.15))',
@@ -74,7 +74,7 @@ const Stats = () => {
                 ]
             },
             {
-                title: 'Battery Usage',
+                title: 'Juice Meter 🔋',
                 icon: Battery,
                 color: 'text-cyan-200',
                 gradient: 'linear-gradient(135deg, rgba(6, 182, 212, 0.15), rgba(59, 130, 246, 0.15))',
@@ -109,7 +109,10 @@ const Stats = () => {
     return (
         <div className="flex flex-col gap-6">
             <header className="flex justify-between items-center">
-                <h1>Stats</h1>
+                <div>
+                    <h1>Pro Stats 📊</h1>
+                    <p className="text-sm text-secondary">Usage analytics</p>
+                </div>
                 {/* View Switcher */}
                 <div className="flex bg-black/20 dark:bg-black/40 p-1 rounded-lg">
                     <button
@@ -166,7 +169,7 @@ const Stats = () => {
                 <div className="flex flex-col gap-6 pb-4">
                     {/* Cost Chart */}
                     <div className="glass-panel p-4">
-                        <h3 className="text-sm text-secondary mb-4 uppercase tracking-wide">Spending Trend ({CUR})</h3>
+                        <h3 className="text-sm text-secondary mb-4 uppercase tracking-wide">Cash Burn 🔥 ({CUR})</h3>
                         <div className="h-48 w-full">
                             <ResponsiveContainer width="100%" height="100%">
                                 <BarChart data={chartData}>
@@ -185,7 +188,7 @@ const Stats = () => {
 
                     {/* Efficiency Chart */}
                     <div className="glass-panel p-4">
-                        <h3 className="text-sm text-secondary mb-4 uppercase tracking-wide">Efficiency ({UNIT} / kWh)</h3>
+                        <h3 className="text-sm text-secondary mb-4 uppercase tracking-wide">Eco Hero Mode 🌱 ({UNIT} / kWh)</h3>
                         <div className="h-48 w-full">
                             <ResponsiveContainer width="100%" height="100%">
                                 <AreaChart data={chartData}>
@@ -204,7 +207,7 @@ const Stats = () => {
 
                     {/* Cost Efficiency Chart */}
                     <div className="glass-panel p-4">
-                        <h3 className="text-sm text-secondary mb-4 uppercase tracking-wide">Running Cost ({CUR} / {UNIT})</h3>
+                        <h3 className="text-sm text-secondary mb-4 uppercase tracking-wide">Cost per Adventure 🚗 ({CUR} / {UNIT})</h3>
                         <div className="h-48 w-full">
                             <ResponsiveContainer width="100%" height="100%">
                                 <AreaChart data={chartData}>
@@ -224,7 +227,7 @@ const Stats = () => {
             )}
 
             <p className="text-center text-xs text-secondary mt-0 mb-4">
-                * Charts based on individual session logs
+                * Powered by your juice sessions ⚡
             </p>
         </div>
     );

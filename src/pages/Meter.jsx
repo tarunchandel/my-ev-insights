@@ -1,10 +1,12 @@
 import React, { useState } from 'react';
 import { useApp } from '../context/AppContext';
+import { useToast } from '../components/Toast';
 import { Calendar, Coins, Activity, Zap, Edit2, Trash2, X } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 
 const Meter = () => {
     const { addBill, updateBill, deleteBill, bills, settings } = useApp();
+    const { showToast } = useToast();
     const [editingId, setEditingId] = useState(null);
 
     const initialForm = {
@@ -64,10 +66,10 @@ const Meter = () => {
         if (editingId) {
             updateBill(payload);
             setEditingId(null);
-            alert(`Bill Updated! Rate: ${settings.currency}${rate.toFixed(2)}`);
+            showToast(`Bill updated! Rate: ${settings.currency}${rate.toFixed(2)}/unit 💸`, 'success');
         } else {
             addBill(payload);
-            alert(`Bill Saved! Rate: ${settings.currency}${rate.toFixed(2)}`);
+            showToast(`Bill saved! Rate: ${settings.currency}${rate.toFixed(2)}/unit ⚡`, 'success');
         }
 
         setFormData(prev => ({
@@ -80,12 +82,13 @@ const Meter = () => {
     return (
         <div className="flex flex-col gap-6">
             <header>
-                <h1>Home Meter</h1>
+                <h1>Home Juice Hookup 🏠⚡</h1>
+                <p className="text-sm text-secondary">Track home electricity</p>
             </header>
 
             <form onSubmit={handleSubmit} className={`glass-panel p-6 flex flex-col gap-4 ${editingId ? 'border-primary/50' : ''}`}>
                 <div className="flex justify-between items-center">
-                    <h3 className="text-white text-sm font-normal">{editingId ? 'Edit Bill' : 'Add Electricity Bill'}</h3>
+                    <h3 className="text-white text-sm font-normal">{editingId ? 'Tweak the Bill ✏️' : 'Log the Bill 💡'}</h3>
                     {editingId && <button type="button" onClick={cancelEdit}><X size={16} /></button>}
                 </div>
 
@@ -112,12 +115,15 @@ const Meter = () => {
 
                 <button type="submit" className="primary-btn mt-2 flex items-center justify-center gap-2">
                     {editingId ? <Edit2 size={18} /> : <Zap size={18} />}
-                    {editingId ? 'Update Bill' : 'Save Bill'}
+                    {editingId ? 'Lock it in! 🔒' : 'Save the Power! ⚡'}
                 </button>
             </form>
 
             <div className="flex flex-col gap-3">
-                <h3>History</h3>
+                <div>
+                    <h3>The Power Bills 📜</h3>
+                    <p className="text-xs text-secondary">Bill history</p>
+                </div>
                 <AnimatePresence>
                     {bills.map((bill, i) => (
                         <motion.div
@@ -146,7 +152,7 @@ const Meter = () => {
                         </motion.div>
                     ))}
                 </AnimatePresence>
-                {bills.length === 0 && <p className="text-center text-sm text-secondary">No bills logged yet.</p>}
+                {bills.length === 0 && <p className="text-center text-sm text-secondary">No power bills yet – plug in and track! ⚡📊</p>}
             </div>
         </div>
     );

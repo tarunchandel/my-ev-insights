@@ -11,7 +11,7 @@ const Dashboard = () => {
 
     const tiles = [
         {
-            label: 'Total Spent',
+            label: 'Juice Bills 💸',
             value: `${settings.currency}${stats.totalSpent.toLocaleString()}`,
             icon: Coins,
             style: {
@@ -21,7 +21,7 @@ const Dashboard = () => {
             iconStyle: { color: '#bfdbfe', backgroundColor: 'rgba(0,0,0,0.2)' } // blue-200
         },
         {
-            label: 'Distanced Driven',
+            label: 'Road Trip! 🛣️',
             value: `${stats.totalKms.toLocaleString()} ${settings.distanceUnit}`,
             icon: Activity,
             style: {
@@ -31,7 +31,7 @@ const Dashboard = () => {
             iconStyle: { color: '#a7f3d0', backgroundColor: 'rgba(0,0,0,0.2)' } // emerald-200
         },
         {
-            label: 'Efficiency',
+            label: 'Green Power ⚡',
             value: `${efficiency.toFixed(2)} ${settings.currency}/${settings.distanceUnit}`,
             icon: Zap,
             style: {
@@ -41,7 +41,7 @@ const Dashboard = () => {
             iconStyle: { color: '#fed7aa', backgroundColor: 'rgba(0,0,0,0.2)' } // orange-200
         },
         {
-            label: 'Total Energy',
+            label: 'Electron Stash 🔋',
             value: `${stats.totalUnits.toFixed(1)} kWh`,
             icon: Battery,
             style: {
@@ -55,7 +55,10 @@ const Dashboard = () => {
     return (
         <div className="flex flex-col gap-6">
             <header className="flex justify-between items-center">
-                <h1>{settings.carName || 'My EV'}</h1>
+                <div>
+                    <h1>{settings.carName || 'My EV'}</h1>
+                    <p className="text-sm text-secondary">Your dashboard overview</p>
+                </div>
             </header>
 
             {/* Pop-out Tiles Grid */}
@@ -84,7 +87,10 @@ const Dashboard = () => {
             </div>
 
             <div className="flex flex-col gap-3">
-                <h3 className="text-white">Recent Activity</h3>
+                <div>
+                    <h3 className="text-white">Latest Vibes ✨</h3>
+                    <p className="text-xs text-secondary">Recent charges</p>
+                </div>
                 <div className="flex flex-col gap-3">
                     {charges.slice(0, 3).map((charge, i) => (
                         <motion.div
@@ -112,8 +118,8 @@ const Dashboard = () => {
                 </div>
                 {charges.length === 0 && (
                     <div className="glass-panel p-8 text-center text-secondary">
-                        <p>No charges logged yet.</p>
-                        <p className="text-xs mt-2">Tap "Charge" to add your first session.</p>
+                        <p>No juice sessions yet! 🔌</p>
+                        <p className="text-xs mt-2">Tap "Juice" to log your first charge – let's roll!</p>
                     </div>
                 )}
             </div>

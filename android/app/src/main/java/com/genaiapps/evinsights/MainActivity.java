@@ -1,4 +1,4 @@
-package com.evtracker.app;
+package com.genaiapps.evinsights;
 
 import com.getcapacitor.BridgeActivity;
 

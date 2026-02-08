@@ -7,12 +7,12 @@ const Layout = () => {
     const location = useLocation();
 
     const navItems = [
-        { to: '/', icon: Home, label: 'Home' },
-        { to: '/charging', icon: Zap, label: 'Charge' },
-        { to: '/stats', icon: BarChart2, label: 'Stats' },
-        { to: '/meter', icon: Gauge, label: 'Meter' },
-        { to: '/expenses', icon: Wrench, label: 'Service' },
-        { to: '/settings', icon: Settings, label: 'Settings' },
+        { to: '/', icon: Home, label: 'Vibes' },
+        { to: '/charging', icon: Zap, label: 'Juice' },
+        { to: '/stats', icon: BarChart2, label: 'Pro' },
+        { to: '/meter', icon: Gauge, label: 'Plugin' },
+        { to: '/expenses', icon: Wrench, label: 'Care' },
+        { to: '/settings', icon: Settings, label: 'Setup' },
     ];
 
     return (
