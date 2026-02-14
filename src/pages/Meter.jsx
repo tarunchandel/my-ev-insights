@@ -1,19 +1,24 @@
-import React, { useState } from 'react';
+import React, { useState, useMemo } from 'react';
 import { useApp } from '../context/AppContext';
 import { useToast } from '../components/Toast';
-import { Calendar, Coins, Activity, Zap, Edit2, Trash2, X } from 'lucide-react';
+import { Gauge, Calendar, Coins, Zap, BarChart3, List, Edit2, Trash2, X } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
+import {
+    ResponsiveContainer, BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip
+} from 'recharts';
 
 const Meter = () => {
     const { addBill, updateBill, deleteBill, bills, settings } = useApp();
     const { showToast } = useToast();
     const [editingId, setEditingId] = useState(null);
+    const [activeTab, setActiveTab] = useState('history');
 
     const initialForm = {
-        billDate: new Date().toISOString().split('T')[0],
-        currentReading: '',
-        lastReading: '',
-        billAmount: '',
+        date: new Date().toISOString().split('T')[0],
+        startReading: '',
+        endReading: '',
+        amount: '',
+        note: '',
     };
 
     const [formData, setFormData] = useState(initialForm);
@@ -24,18 +29,18 @@ const Meter = () => {
 
     const handleEdit = (bill) => {
         setEditingId(bill.id);
-        const dt = new Date(bill.billDate);
         setFormData({
-            billDate: dt.toISOString().split('T')[0],
-            currentReading: bill.currentReading || '',
-            lastReading: bill.lastReading || '',
-            billAmount: bill.billAmount || '',
+            date: new Date(bill.timestamp).toISOString().split('T')[0],
+            startReading: bill.startReading || '',
+            endReading: bill.endReading || '',
+            amount: bill.amount || '',
+            note: bill.note || '',
         });
         window.scrollTo({ top: 0, behavior: 'smooth' });
     };
 
     const handleDelete = (id) => {
-        if (window.confirm('Delete this bill record?')) {
+        if (window.confirm('Delete this bill?')) {
             deleteBill(id);
         }
     };
@@ -47,112 +52,181 @@ const Meter = () => {
 
     const handleSubmit = (e) => {
         e.preventDefault();
-        if (!formData.currentReading || !formData.billAmount) return;
-
-        const unitsConsumed = formData.lastReading
-            ? Number(formData.currentReading) - Number(formData.lastReading)
-            : 0;
-
-        const rate = unitsConsumed > 0 ? (Number(formData.billAmount) / unitsConsumed) : 0;
-
+        const units = (Number(formData.endReading) - Number(formData.startReading)) || 0;
         const payload = {
             ...formData,
             id: editingId || undefined,
-            unitsConsumed,
-            rate,
-            timestamp: new Date(formData.billDate).getTime(),
+            units,
+            timestamp: new Date(formData.date).getTime(),
         };
 
         if (editingId) {
             updateBill(payload);
+            showToast('Bill updated! ✅', 'success');
             setEditingId(null);
-            showToast(`Bill updated! Rate: ${settings.currency}${rate.toFixed(2)}/unit 💸`, 'success');
         } else {
             addBill(payload);
-            showToast(`Bill saved! Rate: ${settings.currency}${rate.toFixed(2)}/unit ⚡`, 'success');
+            showToast('Bill logged! 💡', 'success');
         }
+        setFormData(initialForm);
+    };
 
-        setFormData(prev => ({
-            ...initialForm,
-            // If adding new, maybe keep last reading as current, but reset everything else
-            lastReading: editingId ? '' : prev.currentReading
-        }));
+    const chartData = useMemo(() =>
+        [...bills].sort((a, b) => a.timestamp - b.timestamp).map(b => ({
+            date: new Date(b.timestamp).toLocaleDateString('en-GB', { month: 'short', year: '2-digit' }),
+            amount: Number(b.amount),
+            units: b.units,
+        }))
+        , [bills]);
+
+    const totalSpent = bills.reduce((s, b) => s + Number(b.amount || 0), 0);
+    const totalUnits = bills.reduce((s, b) => s + (b.units || 0), 0);
+    const avgRate = totalUnits > 0 ? (totalSpent / totalUnits) : 0;
+
+    const tooltipStyle = {
+        backgroundColor: '#0f172a',
+        border: '1px solid rgba(255,255,255,0.1)',
+        borderRadius: '12px',
+        fontSize: '11px',
     };
 
     return (
         <div className="flex flex-col gap-6">
             <header>
-                <h1>Home Juice Hookup 🏠⚡</h1>
-                <p className="text-sm text-secondary">Track home electricity</p>
+                <h1>Meter Reading 🔌</h1>
+                <p className="text-sm">Track electricity bills</p>
             </header>
 
-            <form onSubmit={handleSubmit} className={`glass-panel p-6 flex flex-col gap-4 ${editingId ? 'border-primary/50' : ''}`}>
-                <div className="flex justify-between items-center">
-                    <h3 className="text-white text-sm font-normal">{editingId ? 'Tweak the Bill ✏️' : 'Log the Bill 💡'}</h3>
-                    {editingId && <button type="button" onClick={cancelEdit}><X size={16} /></button>}
-                </div>
+            {/* ── Summary mini ── */}
+            <div className="grid grid-cols-3 gap-2">
+                {[
+                    { label: 'Total Paid', value: `${settings.currency}${totalSpent.toLocaleString()}`, gradient: 'linear-gradient(135deg, rgba(168,85,247,0.15), rgba(99,102,241,0.15))' },
+                    { label: 'Total kWh', value: `${totalUnits.toFixed(1)}`, gradient: 'linear-gradient(135deg, rgba(6,182,212,0.15), rgba(59,130,246,0.15))' },
+                    { label: 'Avg Rate', value: `${settings.currency}${avgRate.toFixed(2)}/kWh`, gradient: 'linear-gradient(135deg, rgba(249,115,22,0.15), rgba(239,68,68,0.15))' },
+                ].map(t => (
+                    <div key={t.label} className="glass-panel p-3 text-center" style={{ background: t.gradient }}>
+                        <div style={{ fontSize: 'var(--font-size-tile-number)', fontWeight: 800, lineHeight: 1.1 }}>{t.value}</div>
+                        <div style={{ fontSize: 'var(--font-size-tile-label)', textTransform: 'uppercase', letterSpacing: '0.04em', color: 'var(--text-secondary)', opacity: 0.6, marginTop: '4px' }}>{t.label}</div>
+                    </div>
+                ))}
+            </div>
 
-                <label className="flex flex-col gap-1">
-                    <span className="text-xs text-secondary flex items-center gap-1"><Calendar size={12} /> Bill Date</span>
-                    <input type="date" name="billDate" value={formData.billDate} onChange={handleChange} required />
-                </label>
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 items-start">
+                {/* ── Form ── */}
+                <form onSubmit={handleSubmit} className={`glass-panel p-4 flex flex-col gap-3 ${editingId ? 'border-primary/50' : ''}`}>
+                    {editingId && (
+                        <div className="flex justify-between items-center p-2 rounded-lg" style={{ background: 'rgba(167, 139, 250, 0.15)' }}>
+                            <span className="text-sm text-primary font-medium">Editing bill... ✏️</span>
+                            <button type="button" onClick={cancelEdit}><X size={16} /></button>
+                        </div>
+                    )}
 
-                <div className="grid grid-cols-2 gap-4">
                     <label className="flex flex-col gap-1">
-                        <span className="text-xs text-secondary flex items-center gap-1"><Activity size={12} /> Last Reading</span>
-                        <input type="number" name="lastReading" placeholder="e.g. 1000" value={formData.lastReading} onChange={handleChange} />
+                        <span className="form-label"><Calendar size={11} /> Bill Date</span>
+                        <input type="date" name="date" value={formData.date} onChange={handleChange} required />
                     </label>
-                    <label className="flex flex-col gap-1">
-                        <span className="text-xs text-secondary flex items-center gap-1"><Activity size={12} /> Current Read</span>
-                        <input type="number" name="currentReading" placeholder="e.g. 1250" value={formData.currentReading} onChange={handleChange} required />
-                    </label>
-                </div>
 
-                <label className="flex flex-col gap-1">
-                    <span className="text-xs text-secondary flex items-center gap-1"><Coins size={12} /> Bill Amount ({settings.currency})</span>
-                    <input type="number" name="billAmount" placeholder="e.g. 2450" value={formData.billAmount} onChange={handleChange} required />
-                </label>
+                    <div className="grid grid-cols-2 gap-3">
+                        <label className="flex flex-col gap-1">
+                            <span className="form-label"><Gauge size={11} /> Start Reading (kWh)</span>
+                            <input type="number" step="0.1" name="startReading" placeholder="e.g. 450" value={formData.startReading} onChange={handleChange} />
+                        </label>
+                        <label className="flex flex-col gap-1">
+                            <span className="form-label"><Gauge size={11} /> End Reading (kWh)</span>
+                            <input type="number" step="0.1" name="endReading" placeholder="e.g. 520" value={formData.endReading} onChange={handleChange} />
+                        </label>
+                    </div>
 
-                <button type="submit" className="primary-btn mt-2 flex items-center justify-center gap-2">
-                    {editingId ? <Edit2 size={18} /> : <Zap size={18} />}
-                    {editingId ? 'Lock it in! 🔒' : 'Save the Power! ⚡'}
-                </button>
-            </form>
+                    <div className="grid grid-cols-2 gap-3">
+                        <label className="flex flex-col gap-1">
+                            <span className="form-label"><Coins size={11} /> Bill Amount ({settings.currency})</span>
+                            <input type="number" name="amount" placeholder="e.g. 1200" value={formData.amount} onChange={handleChange} required />
+                        </label>
+                        <label className="flex flex-col gap-1">
+                            <span className="form-label">Note</span>
+                            <input type="text" name="note" placeholder="e.g. Dec 2024" value={formData.note} onChange={handleChange} />
+                        </label>
+                    </div>
 
-            <div className="flex flex-col gap-3">
-                <div>
-                    <h3>The Power Bills 📜</h3>
-                    <p className="text-xs text-secondary">Bill history</p>
-                </div>
-                <AnimatePresence>
-                    {bills.map((bill, i) => (
-                        <motion.div
-                            initial={{ opacity: 0, x: -20 }}
-                            animate={{ opacity: 1, x: 0 }}
-                            transition={{ delay: i * 0.1 }}
-                            key={bill.id}
-                            className="glass-panel p-4 flex justify-between items-center"
+                    <motion.button whileTap={{ scale: 0.95 }} type="submit" className="primary-btn flex items-center justify-center gap-2">
+                        {editingId ? <Edit2 size={16} /> : <Gauge size={16} />}
+                        {editingId ? 'Update Bill' : 'Log Bill'}
+                    </motion.button>
+                </form>
+
+                {/* ── Chart + History Toggle ── */}
+                <div className="flex flex-col gap-4">
+                    <div className="view-toggle">
+                        <button
+                            onClick={() => setActiveTab('history')}
+                            className={`view-toggle-btn ${activeTab === 'history' ? 'active' : ''}`}
                         >
-                            <div className="flex flex-col">
-                                <span className="font-medium flex items-center gap-2">
-                                    {new Date(bill.billDate).toLocaleDateString()}
-                                    <div className="flex gap-1 ml-2 opacity-50">
-                                        <button onClick={() => handleEdit(bill)} className="p-1 hover:text-primary"><Edit2 size={12} /></button>
-                                        <button onClick={() => handleDelete(bill.id)} className="p-1 hover:text-danger"><Trash2 size={12} /></button>
-                                    </div>
-                                </span>
-                                <span className="text-xs text-secondary">
-                                    {bill.unitsConsumed > 0 ? `${bill.unitsConsumed} units` : 'Reading update'}
-                                </span>
+                            <List size={14} /> History
+                        </button>
+                        <button
+                            onClick={() => setActiveTab('chart')}
+                            className={`view-toggle-btn ${activeTab === 'chart' ? 'active' : ''}`}
+                        >
+                            <BarChart3 size={14} /> Chart
+                        </button>
+                    </div>
+
+                    {activeTab === 'chart' ? (
+                        <div className="glass-panel p-4">
+                            <h3 className="section-heading">Electricity Costs ({settings.currency})</h3>
+                            <div className="chart-container" style={{ height: '14rem' }}>
+                                {chartData.length > 0 ? (
+                                    <ResponsiveContainer width="100%" height="100%">
+                                        <BarChart data={chartData}>
+                                            <CartesianGrid strokeDasharray="3 3" opacity={0.1} />
+                                            <XAxis dataKey="date" stroke="#94a3b8" fontSize={10} tickLine={false} axisLine={false} />
+                                            <YAxis stroke="#94a3b8" fontSize={10} tickLine={false} axisLine={false} width={45} />
+                                            <Tooltip contentStyle={tooltipStyle} itemStyle={{ color: '#fff' }} />
+                                            <Bar dataKey="amount" fill="#818cf8" radius={[4, 4, 0, 0]} name={`Amount (${settings.currency})`} />
+                                        </BarChart>
+                                    </ResponsiveContainer>
+                                ) : (
+                                    <div className="chart-empty">No bills logged yet 📊</div>
+                                )}
                             </div>
-                            <div className="text-right">
-                                <div className="text-primary font-bold">{settings.currency}{Number(bill.rate).toFixed(2)} <span className="text-[10px] font-normal text-secondary">/unit</span></div>
-                                <div className="text-xs text-white">{settings.currency}{bill.billAmount}</div>
-                            </div>
-                        </motion.div>
-                    ))}
-                </AnimatePresence>
-                {bills.length === 0 && <p className="text-center text-sm text-secondary">No power bills yet – plug in and track! ⚡📊</p>}
+                        </div>
+                    ) : (
+                        <div className="flex flex-col gap-3">
+                            <AnimatePresence>
+                                {bills.map((bill) => (
+                                    <motion.div
+                                        key={bill.id}
+                                        initial={{ opacity: 0, x: -20 }}
+                                        animate={{ opacity: 1, x: 0 }}
+                                        className="glass-panel p-3 log-card"
+                                    >
+                                        <div className="log-card-left">
+                                            <div className="log-card-icon bg-violet-500/20 text-violet-400">
+                                                <Gauge size={16} />
+                                            </div>
+                                            <div className="log-card-info">
+                                                <span className="log-card-title">
+                                                    {bill.note || 'Electricity Bill'}
+                                                    <span className="log-card-actions">
+                                                        <button onClick={() => handleEdit(bill)} className="p-1 hover:text-primary"><Edit2 size={12} /></button>
+                                                        <button onClick={() => handleDelete(bill.id)} className="p-1 hover:text-danger"><Trash2 size={12} /></button>
+                                                    </span>
+                                                </span>
+                                                <span className="log-card-subtitle">
+                                                    {new Date(bill.timestamp).toLocaleDateString()} • {bill.units ? `${bill.units} kWh` : ''}
+                                                </span>
+                                            </div>
+                                        </div>
+                                        <div className="log-card-right">
+                                            <div className="log-card-value text-violet-400">{settings.currency}{bill.amount}</div>
+                                        </div>
+                                    </motion.div>
+                                ))}
+                            </AnimatePresence>
+                            {bills.length === 0 && <p className="empty-state">No bills yet — add your first! 💡</p>}
+                        </div>
+                    )}
+                </div>
             </div>
         </div>
     );

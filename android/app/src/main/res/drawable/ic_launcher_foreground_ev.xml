@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="utf-8"?>
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="108dp"
+    android:height="108dp"
+    android:viewportWidth="108"
+    android:viewportHeight="108">
+    <!-- Simplified high-quality paths for E and V -->
+    <!-- Centered: E (approx 30x40) and V (approx 34x40) with small gap -->
+    <path
+        android:fillColor="#10B981"
+        android:pathData="M20,32 h28 v10 h-18 v7 h15 v10 h-15 v7 h18 v10 h-28 z M55,32 l11.5,44 h10 l11.5,-44 h-11 l-5,22 l-5,-22 z" />
+</vector>

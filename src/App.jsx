@@ -5,7 +5,6 @@ import { ToastProvider } from './components/Toast';
 import Layout from './components/Layout';
 import Dashboard from './pages/Dashboard';
 import Charging from './pages/Charging';
-import Stats from './pages/Stats';
 import Meter from './pages/Meter';
 import Settings from './pages/Settings';
 import Expenses from './pages/Expenses';
@@ -45,7 +44,6 @@ function App() {
             <Route path="/" element={<Layout />}>
               <Route index element={<Dashboard />} />
               <Route path="charging" element={<Charging />} />
-              <Route path="stats" element={<Stats />} />
               <Route path="meter" element={<Meter />} />
               <Route path="expenses" element={<Expenses />} />
               <Route path="settings" element={<Settings />} />

@@ -1,0 +1,24 @@
+{
+  "name": "My EV Insights",
+  "short_name": "EV Insights",
+  "description": "Track all your electric vehicle usage, charging, and expenses.",
+  "start_url": "/",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#ffffff",
+  "theme_color": "#10B981",
+  "icons": [
+    {
+      "src": "logo.svg",
+      "type": "image/svg+xml",
+      "sizes": "any",
+      "purpose": "any"
+    },
+    {
+      "src": "logo.svg",
+      "type": "image/svg+xml",
+      "sizes": "any",
+      "purpose": "maskable"
+    }
+  ]
+}

@@ -1,47 +1,49 @@
 import React, { useState, useMemo } from 'react';
 import { useApp } from '../context/AppContext';
 import { useToast } from '../components/Toast';
-import { Calendar, Coins, Activity, Wrench, FileText, Tag, Edit2, Trash2, X, PieChart, TrendingUp, DollarSign } from 'lucide-react';
+import { Wrench, Calendar, Coins, List, BarChart3, Edit2, Trash2, X, Tag, FileText } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { ResponsiveContainer, PieChart as RePieChart, Pie, Cell, Tooltip, BarChart, Bar, XAxis, YAxis, CartesianGrid } from 'recharts';
+import {
+    ResponsiveContainer, PieChart, Pie, Cell, BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend
+} from 'recharts';
+
+const CATEGORIES = ['Service', 'Tyres', 'Insurance', 'Body Work', 'Accessories', 'Other'];
+const PIE_COLORS = ['#818cf8', '#34d399', '#fbbf24', '#f87171', '#22d3ee', '#fb923c'];
 
 const Expenses = () => {
     const { addExpense, updateExpense, deleteExpense, expenses, settings } = useApp();
     const { showToast } = useToast();
     const [editingId, setEditingId] = useState(null);
+    const [activeTab, setActiveTab] = useState('log');
 
     const initialForm = {
         date: new Date().toISOString().split('T')[0],
-        category: 'Service',
-        cost: '',
-        odometer: '',
+        category: CATEGORIES[0],
+        amount: '',
+        description: '',
         note: '',
     };
 
     const [formData, setFormData] = useState(initialForm);
 
-    const categories = ['Service', 'Insurance', 'Repairs', 'Accessories', 'Wash', 'Toll', 'Parking', 'Other'];
-    const COLORS = ['#38bdf8', '#34d399', '#f87171', '#fbbf24', '#a78bfa', '#e879f9', '#22d3ee', '#94a3b8'];
-
     const handleChange = (e) => {
         setFormData({ ...formData, [e.target.name]: e.target.value });
     };
 
-    const handleEdit = (item) => {
-        setEditingId(item.id);
-        const dt = new Date(item.timestamp);
+    const handleEdit = (exp) => {
+        setEditingId(exp.id);
         setFormData({
-            date: dt.toISOString().split('T')[0],
-            category: item.category,
-            cost: item.cost,
-            odometer: item.odometer || '',
-            note: item.note || '',
+            date: new Date(exp.timestamp).toISOString().split('T')[0],
+            category: exp.category,
+            amount: exp.amount,
+            description: exp.description || '',
+            note: exp.note || '',
         });
         window.scrollTo({ top: 0, behavior: 'smooth' });
     };
 
     const handleDelete = (id) => {
-        if (window.confirm('Delete this record?')) {
+        if (window.confirm('Delete this expense?')) {
             deleteExpense(id);
         }
     };
@@ -53,209 +55,202 @@ const Expenses = () => {
 
     const handleSubmit = (e) => {
         e.preventDefault();
-        if (!formData.cost || !formData.category) return;
-
         const payload = {
             ...formData,
             id: editingId || undefined,
             timestamp: new Date(formData.date).getTime(),
         };
-
         if (editingId) {
             updateExpense(payload);
+            showToast('Expense updated! ✅', 'success');
             setEditingId(null);
-            showToast('Record updated! ✨', 'success');
         } else {
             addExpense(payload);
-            showToast('Expense saved! 💰', 'success');
+            showToast('Expense saved! 🔧', 'success');
         }
-
         setFormData(initialForm);
     };
 
-    // --- Analytics Logic ---
-    const stats = useMemo(() => {
-        const total = expenses.reduce((acc, curr) => acc + (Number(curr.cost) || 0), 0);
+    // Analytics
+    const totalExpenses = expenses.reduce((s, e) => s + Number(e.amount || 0), 0);
+    const byCat = expenses.reduce((acc, e) => {
+        acc[e.category] = (acc[e.category] || 0) + Number(e.amount || 0);
+        return acc;
+    }, {});
+    const categoryData = Object.entries(byCat).map(([name, value]) => ({ name, value }));
 
-        // Category Breakdown
-        const byCat = expenses.reduce((acc, curr) => {
-            acc[curr.category] = (acc[curr.category] || 0) + Number(curr.cost);
-            return acc;
-        }, {});
-
-        const categoryData = Object.entries(byCat).map(([name, value]) => ({ name, value }));
-
-        // Sort for most expensive tile
-        const sortedCats = [...categoryData].sort((a, b) => b.value - a.value);
-        const topCat = sortedCats[0] || { name: '-', value: 0 };
-
-        return { total, categoryData, topCat };
+    const monthlyData = useMemo(() => {
+        const grouped = {};
+        expenses.forEach(e => {
+            const key = new Date(e.timestamp).toLocaleDateString('en-GB', { month: 'short', year: '2-digit' });
+            grouped[key] = (grouped[key] || 0) + Number(e.amount || 0);
+        });
+        return Object.entries(grouped).map(([month, total]) => ({ month, total }));
     }, [expenses]);
+
+    const tooltipStyle = {
+        backgroundColor: '#0f172a',
+        border: '1px solid rgba(255,255,255,0.1)',
+        borderRadius: '12px',
+        fontSize: '11px',
+    };
 
     return (
         <div className="flex flex-col gap-6">
             <header>
-                <h1>Car Care Diary 🛠️</h1>
-                <p className="text-sm text-secondary">Track maintenance costs</p>
+                <h1>Car Care 🔧</h1>
+                <p className="text-sm">Track maintenance & expenses</p>
             </header>
 
-            {/* Overview Tiles */}
-            <div className="grid grid-cols-2 gap-3">
-                <div className="glass-panel p-4 flex flex-col justify-between aspect-[3/2] border-t-2 border-primary/30 bg-gradient-to-br from-primary/10 to-transparent">
-                    <div className="p-2 bg-primary/20 text-primary w-fit rounded-lg">
-                        <Coins size={20} />
+            {/* ── Summary ── */}
+            <div className="grid grid-cols-2 gap-2">
+                <div className="glass-panel p-3 text-center" style={{ background: 'linear-gradient(135deg, rgba(99,102,241,0.15), rgba(168,85,247,0.15))' }}>
+                    <div style={{ fontSize: 'var(--font-size-tile-number)', fontWeight: 800, lineHeight: 1.1 }}>
+                        {settings.currency}{totalExpenses.toLocaleString()}
                     </div>
-                    <div>
-                        <span className="text-secondary text-xs uppercase font-medium">Wallet Impact 💸</span>
-                        <div className="text-2xl font-bold text-white">{settings.currency}{stats.total.toLocaleString()}</div>
-                    </div>
+                    <div style={{ fontSize: 'var(--font-size-tile-label)', textTransform: 'uppercase', letterSpacing: '0.04em', color: 'var(--text-secondary)', opacity: 0.6, marginTop: '4px' }}>Total Spent</div>
                 </div>
-
-                <div className="glass-panel p-4 flex flex-col justify-between aspect-[3/2] border-t-2 border-accent/30 bg-gradient-to-br from-accent/10 to-transparent">
-                    <div className="p-2 bg-accent/20 text-accent w-fit rounded-lg">
-                        <Tag size={20} />
+                <div className="glass-panel p-3 text-center" style={{ background: 'linear-gradient(135deg, rgba(16,185,129,0.15), rgba(20,184,166,0.15))' }}>
+                    <div style={{ fontSize: 'var(--font-size-tile-number)', fontWeight: 800, lineHeight: 1.1 }}>
+                        {expenses.length}
                     </div>
-                    <div>
-                        <span className="text-secondary text-xs uppercase font-medium">Biggest Flex 💪</span>
-                        <div className="text-lg font-bold text-white truncate">{stats.topCat.name}</div>
-                        <div className="text-xs text-white/50">{settings.currency}{stats.topCat.value.toLocaleString()}</div>
-                    </div>
+                    <div style={{ fontSize: 'var(--font-size-tile-label)', textTransform: 'uppercase', letterSpacing: '0.04em', color: 'var(--text-secondary)', opacity: 0.6, marginTop: '4px' }}>Records</div>
                 </div>
             </div>
 
-            {/* Category Breakdown Charts */}
-            {stats.total > 0 && (
-                <div className="flex flex-col gap-4">
-                    {/* Category Tiles Grid */}
-                    <div className="grid grid-cols-2 gap-2">
-                        {stats.categoryData.map((cat) => (
-                            <div key={cat.name} className="glass-panel p-3 flex justify-between items-center bg-white/5">
-                                <span className="text-sm font-medium text-secondary">{cat.name}</span>
-                                <span className="text-sm font-bold text-white">{settings.currency}{cat.value.toLocaleString()}</span>
-                            </div>
-                        ))}
-                    </div>
-
-                    {/* Chart */}
-                    <div className="glass-panel p-4 flex flex-col items-center">
-                        <h3 className="text-xs uppercase text-secondary font-medium mb-2 w-full text-left">Where's My Money? 🤔</h3>
-                        <div className="w-full h-48">
-                            <ResponsiveContainer width="100%" height="100%">
-                                <RePieChart>
-                                    <Pie
-                                        data={stats.categoryData}
-                                        cx="50%"
-                                        cy="50%"
-                                        innerRadius={40}
-                                        outerRadius={70}
-                                        paddingAngle={5}
-                                        dataKey="value"
-                                    >
-                                        {stats.categoryData.map((entry, index) => (
-                                            <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} stroke="rgba(0,0,0,0.2)" />
-                                        ))}
-                                    </Pie>
-                                    <Tooltip
-                                        contentStyle={{ backgroundColor: '#0f172a', border: '1px solid rgba(255,255,255,0.1)', borderRadius: '12px' }}
-                                        itemStyle={{ color: '#fff' }}
-                                    />
-                                </RePieChart>
-                            </ResponsiveContainer>
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 items-start">
+                {/* ── Form ── */}
+                <form onSubmit={handleSubmit} className={`glass-panel p-4 flex flex-col gap-3 ${editingId ? 'border-primary/50' : ''}`}>
+                    {editingId && (
+                        <div className="flex justify-between items-center p-2 rounded-lg" style={{ background: 'rgba(167, 139, 250, 0.15)' }}>
+                            <span className="text-sm text-primary font-medium">Editing expense... ✏️</span>
+                            <button type="button" onClick={cancelEdit}><X size={16} /></button>
                         </div>
-                        {/* Legend */}
-                        <div className="flex flex-wrap justify-center gap-3 mt-2">
-                            {stats.categoryData.map((entry, index) => (
-                                <div key={entry.name} className="flex items-center gap-1.5">
-                                    <div className="w-2 h-2 rounded-full" style={{ backgroundColor: COLORS[index % COLORS.length] }} />
-                                    <span className="text-[10px] text-secondary">{entry.name}</span>
-                                </div>
-                            ))}
-                        </div>
-                    </div>
-                </div>
-            )}
+                    )}
 
-            <form onSubmit={handleSubmit} className={`glass-panel p-6 flex flex-col gap-4 ${editingId ? 'border-primary/50' : ''}`}>
-                <div className="flex justify-between items-center">
-                    <h3 className="text-white text-sm font-normal">{editingId ? 'Edit the Record ✏️' : 'Log Some Care 🔧'}</h3>
-                    {editingId && <button type="button" onClick={cancelEdit}><X size={16} /></button>}
-                </div>
-
-                <div className="grid grid-cols-2 gap-4">
                     <label className="flex flex-col gap-1">
-                        <span className="text-xs text-secondary flex items-center gap-1"><Calendar size={12} /> Date</span>
+                        <span className="form-label"><Calendar size={11} /> Date</span>
                         <input type="date" name="date" value={formData.date} onChange={handleChange} required />
                     </label>
+
                     <label className="flex flex-col gap-1">
-                        <span className="text-xs text-secondary flex items-center gap-1"><Tag size={12} /> Category</span>
-                        <select name="category" value={formData.category} onChange={handleChange} className="w-full">
-                            {categories.map(c => <option key={c} value={c}>{c}</option>)}
+                        <span className="form-label"><Tag size={11} /> Category</span>
+                        <select name="category" value={formData.category} onChange={handleChange}>
+                            {CATEGORIES.map(c => <option key={c} value={c}>{c}</option>)}
                         </select>
                     </label>
-                </div>
 
-                <div className="grid grid-cols-2 gap-4">
+                    <div className="grid grid-cols-2 gap-3">
+                        <label className="flex flex-col gap-1">
+                            <span className="form-label"><Coins size={11} /> Amount ({settings.currency})</span>
+                            <input type="number" name="amount" placeholder="e.g. 2500" value={formData.amount} onChange={handleChange} required />
+                        </label>
+                        <label className="flex flex-col gap-1">
+                            <span className="form-label"><FileText size={11} /> Description</span>
+                            <input type="text" name="description" placeholder="e.g. Tyre rotation" value={formData.description} onChange={handleChange} />
+                        </label>
+                    </div>
+
                     <label className="flex flex-col gap-1">
-                        <span className="text-xs text-secondary flex items-center gap-1"><Coins size={12} /> Cost ({settings.currency})</span>
-                        <input type="number" name="cost" placeholder="e.g. 5000" value={formData.cost} onChange={handleChange} required />
+                        <span className="form-label">Note</span>
+                        <input type="text" name="note" placeholder="e.g. At service center" value={formData.note} onChange={handleChange} />
                     </label>
-                    <label className="flex flex-col gap-1">
-                        <span className="text-xs text-secondary flex items-center gap-1"><Activity size={12} /> Odometer ({settings.distanceUnit})</span>
-                        <input type="number" name="odometer" placeholder="Optional" value={formData.odometer} onChange={handleChange} />
-                    </label>
-                </div>
 
-                <label className="flex flex-col gap-1">
-                    <span className="text-xs text-secondary flex items-center gap-1"><FileText size={12} /> Note</span>
-                    <input type="text" name="note" placeholder="e.g. 2nd Free Service" value={formData.note} onChange={handleChange} />
-                </label>
+                    <motion.button whileTap={{ scale: 0.95 }} type="submit" className="primary-btn flex items-center justify-center gap-2">
+                        {editingId ? <Edit2 size={16} /> : <Wrench size={16} />}
+                        {editingId ? 'Update Expense' : 'Log Expense'}
+                    </motion.button>
+                </form>
 
-                <button type="submit" className="primary-btn mt-2 flex items-center justify-center gap-2">
-                    {editingId ? <Edit2 size={18} /> : <Wrench size={18} />}
-                    {editingId ? 'Lock it in! 🔒' : 'Save the Vibes! ✨'}
-                </button>
-            </form>
+                {/* ── Log + Charts Toggle ── */}
+                <div className="flex flex-col gap-4">
+                    <div className="view-toggle">
+                        <button onClick={() => setActiveTab('log')} className={`view-toggle-btn ${activeTab === 'log' ? 'active' : ''}`}>
+                            <List size={14} /> Log
+                        </button>
+                        <button onClick={() => setActiveTab('stats')} className={`view-toggle-btn ${activeTab === 'stats' ? 'active' : ''}`}>
+                            <BarChart3 size={14} /> Stats
+                        </button>
+                    </div>
 
-            <div className="flex flex-col gap-3">
-                <div>
-                    <h3>The Care Log 📖</h3>
-                    <p className="text-xs text-secondary">Expense history</p>
-                </div>
-                <AnimatePresence>
-                    {expenses.map((item, i) => (
-                        <motion.div
-                            initial={{ opacity: 0, x: -20 }}
-                            animate={{ opacity: 1, x: 0 }}
-                            transition={{ delay: i * 0.05 }}
-                            key={item.id}
-                            className="glass-panel p-4 flex justify-between items-center"
-                        >
-                            <div className="flex items-center gap-3">
-                                <div className="bg-white/10 p-2 rounded-lg text-secondary">
-                                    <Wrench size={18} />
+                    {activeTab === 'stats' ? (
+                        <div className="flex flex-col gap-6">
+                            {/* Pie */}
+                            <div className="glass-panel p-4">
+                                <h3 className="section-heading">By Category</h3>
+                                <div className="chart-container" style={{ height: '14rem' }}>
+                                    {categoryData.length > 0 ? (
+                                        <ResponsiveContainer width="100%" height="100%">
+                                            <PieChart>
+                                                <Pie data={categoryData} dataKey="value" nameKey="name" cx="50%" cy="50%" outerRadius={60} innerRadius={30} paddingAngle={4}>
+                                                    {categoryData.map((_, i) => <Cell key={i} fill={PIE_COLORS[i % PIE_COLORS.length]} />)}
+                                                </Pie>
+                                                <Tooltip contentStyle={tooltipStyle} itemStyle={{ color: '#fff' }} />
+                                                <Legend wrapperStyle={{ fontSize: '11px' }} />
+                                            </PieChart>
+                                        </ResponsiveContainer>
+                                    ) : (
+                                        <div className="chart-empty">No data yet 📊</div>
+                                    )}
                                 </div>
-                                <div className="flex flex-col">
-                                    <span className="font-medium flex items-center gap-2">
-                                        {item.category}
-                                        <div className="flex gap-1 ml-2 opacity-50">
-                                            <button onClick={() => handleEdit(item)} className="p-1 hover:text-primary"><Edit2 size={12} /></button>
-                                            <button onClick={() => handleDelete(item.id)} className="p-1 hover:text-danger"><Trash2 size={12} /></button>
+                            </div>
+                            {/* Monthly */}
+                            <div className="glass-panel p-4">
+                                <h3 className="section-heading">Monthly Spending</h3>
+                                <div className="chart-container" style={{ height: '14rem' }}>
+                                    {monthlyData.length > 0 ? (
+                                        <ResponsiveContainer width="100%" height="100%">
+                                            <BarChart data={monthlyData}>
+                                                <CartesianGrid strokeDasharray="3 3" opacity={0.1} />
+                                                <XAxis dataKey="month" stroke="#94a3b8" fontSize={10} tickLine={false} axisLine={false} />
+                                                <YAxis stroke="#94a3b8" fontSize={10} tickLine={false} axisLine={false} width={45} />
+                                                <Tooltip contentStyle={tooltipStyle} itemStyle={{ color: '#fff' }} />
+                                                <Bar dataKey="total" fill="#fbbf24" radius={[4, 4, 0, 0]} name={`Total (${settings.currency})`} />
+                                            </BarChart>
+                                        </ResponsiveContainer>
+                                    ) : (
+                                        <div className="chart-empty">No data yet 📊</div>
+                                    )}
+                                </div>
+                            </div>
+                        </div>
+                    ) : (
+                        <div className="flex flex-col gap-3">
+                            <AnimatePresence>
+                                {expenses.map((exp, i) => (
+                                    <motion.div
+                                        key={exp.id}
+                                        initial={{ opacity: 0, x: -20 }}
+                                        animate={{ opacity: 1, x: 0 }}
+                                        className="glass-panel p-3 log-card"
+                                    >
+                                        <div className="log-card-left">
+                                            <div className="log-card-icon bg-amber-500/20 text-amber-400">
+                                                <Wrench size={16} />
+                                            </div>
+                                            <div className="log-card-info">
+                                                <span className="log-card-title">
+                                                    {exp.description || exp.category}
+                                                    <span className="log-card-actions">
+                                                        <button onClick={() => handleEdit(exp)} className="p-1 hover:text-primary"><Edit2 size={12} /></button>
+                                                        <button onClick={() => handleDelete(exp.id)} className="p-1 hover:text-danger"><Trash2 size={12} /></button>
+                                                    </span>
+                                                </span>
+                                                <span className="log-card-subtitle">
+                                                    {new Date(exp.timestamp).toLocaleDateString()} • {exp.category}
+                                                </span>
+                                            </div>
                                         </div>
-                                    </span>
-                                    <span className="text-xs text-secondary">
-                                        {new Date(item.timestamp).toLocaleDateString()}
-                                        {item.note && ` • ${item.note}`}
-                                    </span>
-                                </div>
-                            </div>
-                            <div className="text-right">
-                                <div className="text-white font-bold">{settings.currency}{item.cost}</div>
-                                {item.odometer && <div className="text-[10px] text-secondary">{item.odometer} {settings.distanceUnit}</div>}
-                            </div>
-                        </motion.div>
-                    ))}
-                </AnimatePresence>
-                {expenses.length === 0 && <p className="text-center text-sm text-secondary">No care logs yet – your ride is good to go! 🚗✨</p>}
+                                        <div className="log-card-right">
+                                            <div className="log-card-value text-amber-400">{settings.currency}{exp.amount}</div>
+                                        </div>
+                                    </motion.div>
+                                ))}
+                            </AnimatePresence>
+                            {expenses.length === 0 && <p className="empty-state">No expenses yet — keep it rolling! 🚗</p>}
+                        </div>
+                    )}
+                </div>
             </div>
         </div>
     );
