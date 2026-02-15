@@ -1,4 +1,4 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
-  <rect width="512" height="512" fill="#ffffff" rx="100" ry="100"/>
-  <text x="50%" y="50%" dominant-baseline="middle" text-anchor="middle" font-family="Arial, sans-serif" font-weight="900" font-size="280" fill="#10B981" letter-spacing="-10">EV</text>
+<svg width="512" height="512" viewBox="0 0 512 512" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <rect width="512" height="512" rx="120" fill="#ffffff"/>
+  <path d="M120 180C108.954 180 100 188.954 100 200V312C100 323.046 108.954 332 120 332H250C255.523 332 260 327.523 260 322V292C260 286.477 255.523 282 250 282H160V262H240C245.523 262 250 257.523 250 252V222C250 216.477 245.523 212 240 212H160V192H250C255.523 192 260 187.523 260 182V152C260 146.477 255.523 142 250 142H120M290 180C285 180 280.5 183.5 280 188.5L240 338.5C238.5 344 242 350 247.5 351.5C253 353 259 349.5 260.5 344L290 230L319.5 344C321 349.5 327 353 332.5 351.5C338 350 341.5 344 340 338.5L300 188.5C299.5 183.5 295 180 290 180Z" fill="#059669"/>
 </svg>

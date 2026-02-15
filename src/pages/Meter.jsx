@@ -29,12 +29,14 @@ const Meter = () => {
 
     const handleEdit = (bill) => {
         setEditingId(bill.id);
+
+        // Handle both new schema and legacy schema (billAmount, currentReading, lastReading)
         setFormData({
-            date: new Date(bill.timestamp).toISOString().split('T')[0],
-            startReading: bill.startReading || '',
-            endReading: bill.endReading || '',
-            amount: bill.amount || '',
-            note: bill.note || '',
+            date: new Date(bill.timestamp || Date.now()).toISOString().split('T')[0],
+            startReading: bill.startReading ?? bill.lastReading ?? '',
+            endReading: bill.endReading ?? bill.currentReading ?? '',
+            amount: bill.amount ?? bill.billAmount ?? '',
+            note: bill.note ?? '',
         });
         window.scrollTo({ top: 0, behavior: 'smooth' });
     };
@@ -56,7 +58,7 @@ const Meter = () => {
         const payload = {
             ...formData,
             id: editingId || undefined,
-            units,
+            units: units > 0 ? units : 0,
             timestamp: new Date(formData.date).getTime(),
         };
 
@@ -72,15 +74,15 @@ const Meter = () => {
     };
 
     const chartData = useMemo(() =>
-        [...bills].sort((a, b) => a.timestamp - b.timestamp).map(b => ({
-            date: new Date(b.timestamp).toLocaleDateString('en-GB', { month: 'short', year: '2-digit' }),
-            amount: Number(b.amount),
-            units: b.units,
+        [...bills].sort((a, b) => (a.timestamp || 0) - (b.timestamp || 0)).map(b => ({
+            date: new Date(b.timestamp || Date.now()).toLocaleDateString('en-GB', { month: 'short', year: '2-digit' }),
+            amount: Number(b.amount ?? b.billAmount) || 0,
+            units: Number(b.units ?? b.unitsConsumed) || 0,
         }))
         , [bills]);
 
-    const totalSpent = bills.reduce((s, b) => s + Number(b.amount || 0), 0);
-    const totalUnits = bills.reduce((s, b) => s + (b.units || 0), 0);
+    const totalSpent = bills.reduce((s, b) => s + Number(b.amount ?? b.billAmount ?? 0), 0);
+    const totalUnits = bills.reduce((s, b) => s + Number(b.units ?? b.unitsConsumed ?? 0), 0);
     const avgRate = totalUnits > 0 ? (totalSpent / totalUnits) : 0;
 
     const tooltipStyle = {
@@ -105,7 +107,7 @@ const Meter = () => {
                     { label: 'Avg Rate', value: `${settings.currency}${avgRate.toFixed(2)}/kWh`, gradient: 'linear-gradient(135deg, rgba(249,115,22,0.15), rgba(239,68,68,0.15))' },
                 ].map(t => (
                     <div key={t.label} className="glass-panel p-3 text-center" style={{ background: t.gradient }}>
-                        <div style={{ fontSize: 'var(--font-size-tile-number)', fontWeight: 800, lineHeight: 1.1 }}>{t.value}</div>
+                        <div style={{ fontSize: 'clamp(0.9rem, 3.5vw, 1.25rem)', fontWeight: 800, lineHeight: 1.1 }}>{t.value}</div>
                         <div style={{ fontSize: 'var(--font-size-tile-label)', textTransform: 'uppercase', letterSpacing: '0.04em', color: 'var(--text-secondary)', opacity: 0.6, marginTop: '4px' }}>{t.label}</div>
                     </div>
                 ))}
@@ -213,12 +215,12 @@ const Meter = () => {
                                                     </span>
                                                 </span>
                                                 <span className="log-card-subtitle">
-                                                    {new Date(bill.timestamp).toLocaleDateString()} • {bill.units ? `${bill.units} kWh` : ''}
+                                                    {new Date(bill.timestamp || Date.now()).toLocaleDateString()} • {(bill.units ?? bill.unitsConsumed) ? `${(bill.units ?? bill.unitsConsumed)} kWh` : ''}
                                                 </span>
                                             </div>
                                         </div>
                                         <div className="log-card-right">
-                                            <div className="log-card-value text-violet-400">{settings.currency}{bill.amount}</div>
+                                            <div className="log-card-value text-violet-400">{settings.currency}{bill.amount ?? bill.billAmount}</div>
                                         </div>
                                     </motion.div>
                                 ))}

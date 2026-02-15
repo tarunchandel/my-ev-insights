@@ -194,8 +194,8 @@ h3 {
 .text-primary { color: var(--color-primary); }
 .text-accent { color: var(--color-accent); }
 .text-secondary { color: var(--text-secondary); }
-.text-blue-200 { color: #bfdbfe; }
-.dark .text-blue-200 { color: #c7d2fe; }
+.text-blue-200 { color: #1e40af; }
+.dark .text-blue-200 { color: #bfdbfe; }
 
 .uppercase { text-transform: uppercase; }
 .tracking-wider { letter-spacing: 0.08em; }
@@ -555,7 +555,8 @@ button.primary-btn:active {
 .border-emerald-500 { border-color: #10b981; }
 .text-emerald-400 { color: #34d399; }
 .text-emerald-100 { color: #d1fae5; }
-.text-emerald-200 { color: #a7f3d0; }
+.text-emerald-200 { color: #065f46; }
+.dark .text-emerald-200 { color: #a7f3d0; }
 
 /* Blue */
 .bg-blue-500\/20 { background: rgba(59, 130, 246, 0.2); }
@@ -577,13 +578,15 @@ button.primary-btn:active {
 .bg-cyan-500\/20 { background: rgba(6, 182, 212, 0.2); }
 .border-cyan-500 { border-color: #06b6d4; }
 .text-cyan-400 { color: #22d3ee; }
-.text-cyan-200 { color: #a5f3fc; }
+.text-cyan-200 { color: #155e75; }
+.dark .text-cyan-200 { color: #a5f3fc; }
 
 /* Orange */
 .bg-orange-500\/20 { background: rgba(249, 115, 22, 0.2); }
 .border-orange-500 { border-color: #f97316; }
 .text-orange-400 { color: #fb923c; }
-.text-orange-200 { color: #fed7aa; }
+.text-orange-200 { color: #9a3412; }
+.dark .text-orange-200 { color: #fed7aa; }
 
 /* Red */
 .bg-red-500\/20 { background: rgba(239, 68, 68, 0.2); }

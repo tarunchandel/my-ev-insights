@@ -137,7 +137,7 @@ const Dashboard = () => {
                 <p className="text-sm">Dashboard & Analytics</p>
             </header>
 
-            {/* ── Summary Tiles — NUMBER FIRST ── */}
+            {/* ── Summary Tiles — Compact Horizontal Layout ── */}
             <div className="overflow-x-auto no-scrollbar -mx-4 px-4 pb-2">
                 <div className="grid grid-cols-3 md:grid-cols-5 gap-2 min-w-[320px]">
                     {summaryTiles.map((tile, i) => (
@@ -146,64 +146,65 @@ const Dashboard = () => {
                             initial={{ opacity: 0, scale: 0.8 }}
                             animate={{ opacity: 1, scale: 1 }}
                             transition={{ delay: i * 0.08, type: 'spring', stiffness: 200 }}
-                            className="glass-panel flex flex-col justify-between border-t-2"
+                            className="glass-panel border-t-2"
                             style={{
                                 background: tile.bg,
                                 borderColor: tile.border,
-                                padding: '0.5rem',
-                                aspectRatio: '1 / 1',
+                                padding: '0.5rem 0.625rem',
                                 overflow: 'hidden',
                             }}
                         >
-                            {/* Icon — tiny, top-left */}
-                            <div style={{
-                                padding: '4px',
-                                width: 'fit-content',
-                                borderRadius: '6px',
-                                backgroundColor: 'rgba(0,0,0,0.15)',
-                            }}>
-                                <tile.icon style={{ width: '12px', height: '12px', color: tile.iconColor }} />
-                            </div>
-
-                            {/* Number — large, primary focus */}
-                            <div style={{ flex: 1, display: 'flex', flexDirection: 'column', justifyContent: 'center' }}>
+                            {/* Row: Icon + Number side-by-side */}
+                            <div style={{ display: 'flex', alignItems: 'center', gap: '0.375rem' }}>
                                 <div style={{
-                                    fontSize: 'var(--font-size-tile-number)',
+                                    padding: '4px',
+                                    borderRadius: '6px',
+                                    backgroundColor: 'rgba(0,0,0,0.15)',
+                                    flexShrink: 0,
+                                    lineHeight: 0,
+                                }}>
+                                    <tile.icon style={{ width: '14px', height: '14px', color: tile.iconColor }} />
+                                </div>
+                                <div style={{
+                                    fontSize: 'clamp(1rem, 3.5vw, 1.5rem)',
                                     fontWeight: 800,
                                     lineHeight: 1.1,
                                     color: 'var(--text-primary)',
-                                    wordBreak: 'break-all',
                                     overflow: 'hidden',
+                                    textOverflow: 'ellipsis',
+                                    whiteSpace: 'nowrap',
+                                    minWidth: 0,
                                 }}>
                                     {tile.value}
                                 </div>
+                            </div>
+
+                            {/* Unit + Label below */}
+                            <div style={{ marginTop: '0.25rem' }}>
                                 {tile.unit && (
                                     <div style={{
-                                        fontSize: 'var(--font-size-tile-unit)',
+                                        fontSize: 'clamp(0.55rem, 1.8vw, 0.7rem)',
                                         fontWeight: 600,
                                         color: 'var(--text-secondary)',
                                         opacity: 0.7,
-                                        marginTop: '1px',
                                     }}>
                                         {tile.unit}
                                     </div>
                                 )}
-                            </div>
-
-                            {/* Label — smallest, bottom */}
-                            <div style={{
-                                fontSize: 'var(--font-size-tile-label)',
-                                fontWeight: 700,
-                                textTransform: 'uppercase',
-                                letterSpacing: '0.04em',
-                                color: 'var(--text-secondary)',
-                                opacity: 0.6,
-                                lineHeight: 1.1,
-                                overflow: 'hidden',
-                                textOverflow: 'ellipsis',
-                                whiteSpace: 'nowrap',
-                            }}>
-                                {tile.label}
+                                <div style={{
+                                    fontSize: 'clamp(0.5rem, 1.6vw, 0.65rem)',
+                                    fontWeight: 700,
+                                    textTransform: 'uppercase',
+                                    letterSpacing: '0.04em',
+                                    color: 'var(--text-secondary)',
+                                    opacity: 0.6,
+                                    lineHeight: 1.2,
+                                    overflow: 'hidden',
+                                    textOverflow: 'ellipsis',
+                                    whiteSpace: 'nowrap',
+                                }}>
+                                    {tile.label}
+                                </div>
                             </div>
                         </motion.div>
                     ))}

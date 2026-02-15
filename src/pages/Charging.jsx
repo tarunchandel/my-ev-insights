@@ -1,13 +1,17 @@
-import React, { useState } from 'react';
+import React, { useState, useMemo } from 'react';
 import { useApp } from '../context/AppContext';
 import { useToast } from '../components/Toast';
-import { Zap, Calendar, Coins, Activity, BatteryCharging, Edit2, Trash2, X, Home, MapPin, FileText } from 'lucide-react';
+import { Zap, Calendar, Coins, Activity, BatteryCharging, Edit2, Trash2, X, Home, MapPin, FileText, BarChart3, List } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
+import {
+    ResponsiveContainer, BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend
+} from 'recharts';
 
 const Charging = () => {
     const { addCharge, updateCharge, deleteCharge, charges, settings } = useApp();
     const { showToast } = useToast();
     const [editingId, setEditingId] = useState(null);
+    const [activeTab, setActiveTab] = useState('history');
 
     const initialForm = {
         date: new Date().toISOString().split('T')[0],
@@ -104,6 +108,23 @@ const Charging = () => {
 
     const fillHeight = formData.batteryPct ? `${Math.min(formData.batteryPct, 100)}%` : '0%';
     const startHeight = formData.startPct ? `${Math.min(formData.startPct, 100)}%` : '0%';
+
+    // --- Chart Data: kWh by date, split by Home/Public ---
+    const chartData = useMemo(() => {
+        const sorted = [...charges].sort((a, b) => a.timestamp - b.timestamp);
+        return sorted.map(c => ({
+            date: new Date(c.timestamp).toLocaleDateString('en-GB', { day: '2-digit', month: 'short' }),
+            homeKwh: c.type === 'Home' ? Number(c.units || 0) : 0,
+            publicKwh: c.type !== 'Home' ? Number(c.units || 0) : 0,
+        }));
+    }, [charges]);
+
+    const tooltipStyle = {
+        backgroundColor: '#0f172a',
+        border: '1px solid rgba(255,255,255,0.1)',
+        borderRadius: '12px',
+        fontSize: '11px',
+    };
 
     return (
         <div className="flex flex-col gap-6">
@@ -252,42 +273,82 @@ const Charging = () => {
                     </motion.button>
                 </form>
 
-                {/* ── Charging Log ── */}
-                <div className="flex flex-col gap-3">
-                    <h3 className="section-heading"><Zap size={16} /> Charging History</h3>
-                    <AnimatePresence>
-                        {charges.map((charge) => (
-                            <motion.div
-                                key={charge.id}
-                                initial={{ opacity: 0, x: -20 }}
-                                animate={{ opacity: 1, x: 0 }}
-                                className="glass-panel p-3 log-card"
-                            >
-                                <div className="log-card-left">
-                                    <div className={`log-card-icon ${charge.type === 'Home' ? 'bg-emerald-500/20 text-emerald-400' : 'bg-blue-500/20 text-blue-400'}`}>
-                                        {charge.type === 'Home' ? <Home size={16} /> : <Zap size={16} />}
-                                    </div>
-                                    <div className="log-card-info">
-                                        <span className="log-card-title">
-                                            {charge.type} Charge
-                                            <span className="log-card-actions">
-                                                <button onClick={() => handleEdit(charge)} className="p-1 hover:text-primary"><Edit2 size={12} /></button>
-                                                <button onClick={() => handleDelete(charge.id)} className="p-1 hover:text-danger"><Trash2 size={12} /></button>
-                                            </span>
-                                        </span>
-                                        <span className="log-card-subtitle">{new Date(charge.timestamp).toLocaleDateString()}</span>
-                                    </div>
-                                </div>
-                                <div className="log-card-right">
-                                    <div className={`log-card-value ${charge.type === 'Home' ? 'text-emerald-400' : 'text-blue-400'}`}>
-                                        + {charge.units} kWh
-                                    </div>
-                                    <div className="log-card-meta">{settings.currency}{charge.cost}</div>
-                                </div>
-                            </motion.div>
-                        ))}
-                    </AnimatePresence>
-                    {charges.length === 0 && <p className="empty-state">No charging sessions yet — plug in! 🔌</p>}
+                {/* ── Charging Log + Chart Toggle ── */}
+                <div className="flex flex-col gap-4">
+                    <div className="view-toggle">
+                        <button
+                            onClick={() => setActiveTab('history')}
+                            className={`view-toggle-btn ${activeTab === 'history' ? 'active' : ''}`}
+                        >
+                            <List size={14} /> History
+                        </button>
+                        <button
+                            onClick={() => setActiveTab('chart')}
+                            className={`view-toggle-btn ${activeTab === 'chart' ? 'active' : ''}`}
+                        >
+                            <BarChart3 size={14} /> Chart
+                        </button>
+                    </div>
+
+                    {activeTab === 'chart' ? (
+                        <div className="glass-panel p-4">
+                            <h3 className="section-heading"><Zap size={16} /> Charging (kWh) by Date</h3>
+                            <div className="chart-container" style={{ height: '14rem' }}>
+                                {chartData.length > 0 ? (
+                                    <ResponsiveContainer width="100%" height="100%">
+                                        <BarChart data={chartData}>
+                                            <CartesianGrid strokeDasharray="3 3" opacity={0.1} />
+                                            <XAxis dataKey="date" stroke="#94a3b8" fontSize={10} tickLine={false} axisLine={false} />
+                                            <YAxis stroke="#94a3b8" fontSize={10} tickLine={false} axisLine={false} width={40} />
+                                            <Tooltip contentStyle={tooltipStyle} itemStyle={{ color: '#fff' }} />
+                                            <Legend wrapperStyle={{ fontSize: '11px' }} />
+                                            <Bar dataKey="homeKwh" stackId="kwh" fill="#34d399" radius={[0, 0, 0, 0]} name="Home" />
+                                            <Bar dataKey="publicKwh" stackId="kwh" fill="#60a5fa" radius={[4, 4, 0, 0]} name="Public" />
+                                        </BarChart>
+                                    </ResponsiveContainer>
+                                ) : (
+                                    <div className="chart-empty">No charging data yet 📊</div>
+                                )}
+                            </div>
+                        </div>
+                    ) : (
+                        <div className="flex flex-col gap-3">
+                            <h3 className="section-heading"><Zap size={16} /> Charging History</h3>
+                            <AnimatePresence>
+                                {charges.map((charge) => (
+                                    <motion.div
+                                        key={charge.id}
+                                        initial={{ opacity: 0, x: -20 }}
+                                        animate={{ opacity: 1, x: 0 }}
+                                        className="glass-panel p-3 log-card"
+                                    >
+                                        <div className="log-card-left">
+                                            <div className={`log-card-icon ${charge.type === 'Home' ? 'bg-emerald-500/20 text-emerald-400' : 'bg-blue-500/20 text-blue-400'}`}>
+                                                {charge.type === 'Home' ? <Home size={16} /> : <Zap size={16} />}
+                                            </div>
+                                            <div className="log-card-info">
+                                                <span className="log-card-title">
+                                                    {charge.type} Charge
+                                                    <span className="log-card-actions">
+                                                        <button onClick={() => handleEdit(charge)} className="p-1 hover:text-primary"><Edit2 size={12} /></button>
+                                                        <button onClick={() => handleDelete(charge.id)} className="p-1 hover:text-danger"><Trash2 size={12} /></button>
+                                                    </span>
+                                                </span>
+                                                <span className="log-card-subtitle">{new Date(charge.timestamp).toLocaleDateString()}</span>
+                                            </div>
+                                        </div>
+                                        <div className="log-card-right">
+                                            <div className={`log-card-value ${charge.type === 'Home' ? 'text-emerald-400' : 'text-blue-400'}`}>
+                                                + {charge.units} kWh
+                                            </div>
+                                            <div className="log-card-meta">{settings.currency}{charge.cost}</div>
+                                        </div>
+                                    </motion.div>
+                                ))}
+                            </AnimatePresence>
+                            {charges.length === 0 && <p className="empty-state">No charging sessions yet — plug in! 🔌</p>}
+                        </div>
+                    )}
                 </div>
             </div>
         </div>

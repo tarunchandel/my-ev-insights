@@ -1,0 +1,459 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>My EV Insights - Marketing Assets Generator</title>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;800&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Outfit', sans-serif;
+            background: #111;
+            color: #eee;
+            padding: 40px;
+            margin: 0;
+            display: flex;
+            flex-direction: column;
+            gap: 60px;
+            align-items: center;
+        }
+
+        .asset-group {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 20px;
+        }
+
+        h2 {
+            margin: 0;
+            color: #10B981;
+        }
+
+        .meta {
+            color: #888;
+            font-size: 0.9rem;
+        }
+
+        /* 512x512 ICON - COCO BANANA SMOOTH (SQUIRCLE) */
+        #icon-coco-v2 {
+            width: 512px;
+            height: 512px;
+            background: #ffffff;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            /* Premium Squircle shape */
+            border-radius: 24%;
+            box-shadow:
+                0 25px 60px rgba(0, 0, 0, 0.08),
+                0 10px 20px rgba(16, 185, 129, 0.05);
+            position: relative;
+            overflow: hidden;
+        }
+
+        #icon-coco-v2 .ev {
+            font-size: 240px;
+            font-weight: 800;
+            color: #10B981;
+            letter-spacing: -10px;
+            font-family: 'Outfit', sans-serif;
+            z-index: 2;
+        }
+
+        #icon-coco-v2 .bg-accent {
+            position: absolute;
+            width: 150%;
+            height: 150%;
+            background: radial-gradient(circle at 70% 30%, #FFF1BD 0%, transparent 40%);
+            opacity: 0.4;
+            transform: rotate(-15deg);
+        }
+
+        /* 512x512 ICON - MINIMALIST SYMBOL */
+        #icon-symbol {
+            width: 512px;
+            height: 512px;
+            background: #ffffff;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 110px;
+            box-shadow: 0 30px 70px rgba(0, 0, 0, 0.1);
+        }
+
+        #icon-symbol .logo-glyph {
+            width: 280px;
+            height: 280px;
+            border: 35px solid #10B981;
+            border-radius: 60px;
+            position: relative;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        #icon-symbol .logo-glyph::after {
+            content: '';
+            width: 120px;
+            height: 35px;
+            background: #10B981;
+            position: absolute;
+            transform: rotate(45deg);
+            border-radius: 20px;
+        }
+
+        /* 512x512 ICON - DARK VARIANT */
+        #app-icon {
+            width: 512px;
+            height: 512px;
+            background: #ffffff;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 96px;
+            box-shadow: 0 20px 50px rgba(0, 0, 0, 0.5);
+        }
+
+        #app-icon .ev {
+            font-size: 280px;
+            font-weight: 900;
+            color: #10B981;
+            letter-spacing: -10px;
+        }
+
+        /* FEATURE GRAPHIC: DATA DEEP-DIVE (DARK) */
+        #feature-data-dark {
+            width: 1024px;
+            height: 500px;
+            background: #0F172A;
+            display: flex;
+            align-items: center;
+            padding: 0 80px;
+            position: relative;
+            overflow: hidden;
+            border: 1px solid #1e293b;
+            color: white;
+        }
+
+        #feature-data-dark .content {
+            flex: 1;
+            z-index: 2;
+        }
+
+        #feature-data-dark .title {
+            font-size: 64px;
+            font-weight: 800;
+            color: #fff;
+            line-height: 1.1;
+        }
+
+        #feature-data-dark .title span {
+            color: #10B981;
+        }
+
+        #feature-data-dark .mock-ui {
+            width: 450px;
+            height: 320px;
+            background: rgba(255, 255, 255, 0.03);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 24px;
+            padding: 24px;
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+            backdrop-filter: blur(10px);
+        }
+
+        #feature-data-dark .bar {
+            height: 12px;
+            background: rgba(16, 185, 129, 0.2);
+            border-radius: 6px;
+            width: 100%;
+            overflow: hidden;
+        }
+
+        #feature-data-dark .bar-fill {
+            height: 100%;
+            background: #10B981;
+            width: 65%;
+        }
+
+        #feature-data-dark .glow {
+            position: absolute;
+            width: 600px;
+            height: 600px;
+            background: radial-gradient(circle, rgba(16, 185, 129, 0.15) 0%, transparent 70%);
+            top: -200px;
+            right: -200px;
+        }
+
+        /* FEATURE GRAPHIC: CHARGING FOCUS (LIGHT) */
+        #feature-charge-light {
+            width: 1024px;
+            height: 500px;
+            background: #F8FAFC;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            position: relative;
+            overflow: hidden;
+            border: 1px solid #e2e8f0;
+        }
+
+        #feature-charge-light .battery {
+            width: 120px;
+            height: 200px;
+            border: 8px solid #334155;
+            border-radius: 24px;
+            padding: 8px;
+            position: relative;
+            margin-bottom: 30px;
+        }
+
+        #feature-charge-light .battery::after {
+            content: '';
+            position: absolute;
+            top: -20px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 40px;
+            height: 12px;
+            background: #334155;
+            border-radius: 6px 6px 0 0;
+        }
+
+        #feature-charge-light .battery-fill {
+            width: 100%;
+            height: 75%;
+            background: linear-gradient(to top, #10B981, #34D399);
+            border-radius: 12px;
+            position: absolute;
+            bottom: 8px;
+            left: 8px;
+            right: 8px;
+        }
+
+        #feature-charge-light .title {
+            font-size: 56px;
+            font-weight: 800;
+            color: #1E293B;
+            text-align: center;
+        }
+
+        #feature-charge-light .subtitle {
+            font-size: 20px;
+            color: #64748B;
+            font-weight: 500;
+            margin-top: 10px;
+        }
+
+        /* 1024x500 FEATURE GRAPHIC - ORIGINAL LIGHT THEME */
+        #feature-graphic-light {
+            width: 1024px;
+            height: 500px;
+            background: #ffffff;
+            background-image:
+                radial-gradient(circle at 10% 20%, rgba(16, 185, 129, 0.05) 0%, transparent 40%),
+                radial-gradient(circle at 90% 80%, rgba(99, 102, 241, 0.05) 0%, transparent 40%);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            position: relative;
+            overflow: hidden;
+            border: 1px solid #eee;
+            color: #1e1b4b;
+        }
+
+        #feature-graphic-light .content {
+            z-index: 1;
+            text-align: center;
+        }
+
+        #feature-graphic-light .title {
+            font-size: 80px;
+            font-weight: 800;
+            color: #10B981;
+            letter-spacing: -2px;
+        }
+
+        #feature-graphic-light .subtitle {
+            font-size: 20px;
+            color: #64748b;
+            font-weight: 500;
+            letter-spacing: 4px;
+            text-transform: uppercase;
+            margin-top: -5px;
+        }
+
+        #feature-graphic-light .accent-pill {
+            position: absolute;
+            width: 300px;
+            height: 300px;
+            background: #FFF1BD;
+            border-radius: 50%;
+            filter: blur(80px);
+            top: -100px;
+            right: -50px;
+            opacity: 0.6;
+        }
+
+        /* 1024x500 FEATURE GRAPHIC - ORIGINAL DARK THEME */
+        #feature-graphic-dark {
+            width: 1024px;
+            height: 500px;
+            background: linear-gradient(160deg, #0c0a1d 0%, #1a1333 50%, #0f172a 100%);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            position: relative;
+            overflow: hidden;
+            border: 1px solid #333;
+        }
+
+        #feature-graphic-dark .content {
+            z-index: 1;
+            text-align: center;
+        }
+
+        #feature-graphic-dark .title {
+            font-size: 72px;
+            font-weight: 800;
+            background: linear-gradient(135deg, #6366f1, #10b981);
+            -webkit-background-clip: text;
+            background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        #feature-graphic-dark .subtitle {
+            font-size: 24px;
+            color: #a5b4fc;
+            margin-top: 10px;
+            letter-spacing: 2px;
+            text-transform: uppercase;
+        }
+
+        #feature-graphic-dark .label {
+            position: absolute;
+            bottom: 30px;
+            right: 30px;
+            font-weight: 900;
+            font-size: 100px;
+            color: rgba(255, 255, 255, 0.03);
+        }
+
+        button {
+            padding: 10px 20px;
+            background: #10B981;
+            border: none;
+            color: white;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: 600;
+        }
+    </style>
+</head>
+
+<body>
+
+    <h1>🚀 Play Store Asset Generator</h1>
+    <p>Open this page in Chrome/Edge. These are high-resolution CSS renders for your store listing.</p>
+
+    <div class="asset-group">
+        <h2>Premium Icon: "Coco Banana" V2 Squircle (512 x 512)</h2>
+        <div class="meta">Super-smooth squircle shape with subtle Coco-Banana accent.</div>
+        <div id="icon-coco-v2">
+            <div class="bg-accent"></div>
+            <div class="ev">EV</div>
+        </div>
+    </div>
+
+    <div class="asset-group">
+        <h2>Minimalist Symbol Icon (512 x 512)</h2>
+        <div class="meta">Abstract geometric mark for a high-end tech feel.</div>
+        <div id="icon-symbol">
+            <div class="logo-glyph"></div>
+        </div>
+    </div>
+
+    <div class="asset-group">
+        <h2>Feature Graphic: Data Deep-Dive (1024 x 500)</h2>
+        <div class="meta">Highlights the analytical power of the app. Dark theme.</div>
+        <div id="feature-data-dark">
+            <div class="glow"></div>
+            <div class="content">
+                <div class="title">Unlock Your<br><span>EV Potential</span></div>
+            </div>
+            <div class="mock-ui">
+                <div style="font-size: 14px; color: #888;">Monthly Efficiency</div>
+                <div class="bar">
+                    <div class="bar-fill"></div>
+                </div>
+                <div style="font-size: 14px; color: #888;">Top Speed Logged</div>
+                <div class="bar" style="width: 80%">
+                    <div class="bar-fill" style="width: 40%; background: #6366F1;"></div>
+                </div>
+                <div style="display: flex; justify-content: space-between; margin-top: 10px;">
+                    <div
+                        style="width: 100px; height: 100px; border-radius: 50%; border: 4px solid #10B981; display: flex; align-items: center; justify-content: center; font-weight: 800;">
+                        89%</div>
+                    <div
+                        style="width: 100px; height: 100px; border-radius: 50%; border: 4px solid #6366F1; display: flex; align-items: center; justify-content: center; font-weight: 800;">
+                        SAFE</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="asset-group">
+        <h2>Feature Graphic: Charging Focus (1024 x 500)</h2>
+        <div class="meta">Clean, lifestyle-oriented graphic for range tracking.</div>
+        <div id="feature-charge-light">
+            <div class="battery">
+                <div class="battery-fill"></div>
+            </div>
+            <div class="title">Charge with Confidence</div>
+            <div class="subtitle">Track every kWh and mile.</div>
+        </div>
+    </div>
+
+    <div class="asset-group">
+        <h2>Feature Graphic: Airy & Modern (1024 x 500)</h2>
+        <div class="meta">The original light theme, refined.</div>
+        <div id="feature-graphic-light">
+            <div class="accent-pill"></div>
+            <div class="content">
+                <div class="title">My EV Insights</div>
+                <div class="subtitle">ELEGANT • PRIVATE • DATA-DRIVEN</div>
+            </div>
+        </div>
+    </div>
+
+    <div class="asset-group">
+        <h2>Feature Graphic: Midnight Pro (1024 x 500)</h2>
+        <div class="meta">The original dark theme, refined.</div>
+        <div id="feature-graphic-dark">
+            <div class="content">
+                <div class="title">My EV Insights</div>
+                <div class="subtitle">Premium • Privacy-First • Pro Stats</div>
+            </div>
+            <div class="label">EV</div>
+        </div>
+    </div>
+
+    <div class="asset-group">
+        <h2>How to Export (Step-by-Step):</h2>
+        <ol>
+            <li>Open this file in <strong>Chrome</strong>.</li>
+            <li>Press <strong>F12</strong> to open Developer Tools.</li>
+            <li>In the "Elements" panel, click the div you want (e.g., <code>&lt;div id="icon-coco"&gt;</code>).</li>
+            <li>Press <strong>Ctrl + Shift + P</strong> and type <code>"Capture node screenshot"</code>.</li>
+            <li>The browser will automatically download a clean PNG of that specific element at perfect size!</li>
+        </ol>
+    </div>
+
+</body>
+
+</html>
