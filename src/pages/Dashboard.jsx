@@ -1,6 +1,7 @@
 import React, { useMemo, useState } from 'react';
 import { useApp } from '../context/AppContext';
-import { Zap, Activity, Coins, Battery, BarChart3, Grid, Hash } from 'lucide-react';
+import { Zap, Activity, Coins, Battery, BarChart3, Grid, Hash, Navigation } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import {
     ResponsiveContainer, AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, BarChart, Bar
@@ -9,6 +10,7 @@ import {
 const Dashboard = () => {
     const { stats, charges, settings } = useApp();
     const [viewMode, setViewMode] = useState('grid');
+    const navigate = useNavigate();
 
     const CUR = settings.currency;
     const UNIT = settings.distanceUnit.toUpperCase();
@@ -36,7 +38,7 @@ const Dashboard = () => {
 
         return [
             {
-                title: 'Money Talks 💰', icon: Coins, color: 'text-blue-200',
+                title: 'Expenses & Costs', icon: Coins, color: 'text-blue-200',
                 gradient: 'linear-gradient(135deg, rgba(59, 130, 246, 0.15), rgba(168, 85, 247, 0.15))',
                 border: 'rgba(59, 130, 246, 0.3)',
                 tiles: [
@@ -46,7 +48,7 @@ const Dashboard = () => {
                 ]
             },
             {
-                title: 'Road Mastery 🛣️', icon: Activity, color: 'text-emerald-200',
+                title: 'Efficiency & Range', icon: Activity, color: 'text-emerald-200',
                 gradient: 'linear-gradient(135deg, rgba(16, 185, 129, 0.15), rgba(20, 184, 166, 0.15))',
                 border: 'rgba(16, 185, 129, 0.3)',
                 tiles: [
@@ -56,7 +58,7 @@ const Dashboard = () => {
                 ]
             },
             {
-                title: 'Power Profile ⚡', icon: Zap, color: 'text-orange-200',
+                title: 'Energy Usage', icon: Zap, color: 'text-orange-200',
                 gradient: 'linear-gradient(135deg, rgba(249, 115, 22, 0.15), rgba(239, 68, 68, 0.15))',
                 border: 'rgba(249, 115, 22, 0.3)',
                 tiles: [
@@ -66,7 +68,7 @@ const Dashboard = () => {
                 ]
             },
             {
-                title: 'Battery Meter 🔋', icon: Battery, color: 'text-cyan-200',
+                title: 'Battery & Capacity', icon: Battery, color: 'text-cyan-200',
                 gradient: 'linear-gradient(135deg, rgba(6, 182, 212, 0.15), rgba(59, 130, 246, 0.15))',
                 border: 'rgba(6, 182, 212, 0.3)',
                 tiles: [
@@ -94,7 +96,17 @@ const Dashboard = () => {
         });
     }, [charges]);
 
-    // --- Summary tiles data ---
+    // --- Avg Range for 100% charge ---
+    const avgRange100 = useMemo(() => {
+        // (km per %) * 100 gives estimated range at 100%
+        const totals = charges.reduce((acc, c) => ({
+            km: acc.km + (parseFloat(c.drivenKm) || 0),
+            pct: acc.pct + ((parseFloat(c.batteryPct) || 0) - (parseFloat(c.startPct) || 0)),
+        }), { km: 0, pct: 0 });
+        return totals.pct > 0 ? ((totals.km / totals.pct) * 100) : 0;
+    }, [charges]);
+
+    // --- Summary tiles data (removed Energy, added Avg Range) ---
     const summaryTiles = [
         {
             label: 'Total Spent', value: `${CUR}${stats.totalSpent.toLocaleString()}`, icon: Coins,
@@ -112,7 +124,7 @@ const Dashboard = () => {
             border: 'rgba(249, 115, 22, 0.3)', iconColor: '#fed7aa'
         },
         {
-            label: 'Energy', value: `${stats.totalUnits.toFixed(1)}`, unit: 'kWh', icon: Battery,
+            label: 'Avg Range', value: `${avgRange100.toFixed(0)}`, unit: `${UNIT} @100%`, icon: Navigation,
             bg: 'linear-gradient(135deg, rgba(6, 182, 212, 0.2), rgba(59, 130, 246, 0.2))',
             border: 'rgba(6, 182, 212, 0.3)', iconColor: '#a5f3fc'
         },
@@ -137,36 +149,57 @@ const Dashboard = () => {
                 <p className="text-sm">Dashboard & Analytics</p>
             </header>
 
+            {/* ── First-time User Onboarding Nudge ── */}
+            {charges.length === 0 && (
+                <motion.div
+                    initial={{ opacity: 0, y: 20 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    className="glass-panel p-4"
+                    style={{
+                        background: 'linear-gradient(135deg, rgba(99, 102, 241, 0.15), rgba(16, 185, 129, 0.15))',
+                        borderColor: 'rgba(99, 102, 241, 0.3)',
+                        textAlign: 'center',
+                    }}
+                >
+                    <div style={{ fontSize: '2rem', marginBottom: '0.5rem' }}>👋</div>
+                    <h3 style={{ fontSize: '1rem', fontWeight: 700, marginBottom: '0.25rem' }}>Welcome to EV Insights!</h3>
+                    <p style={{ fontSize: '0.8rem', color: 'var(--text-secondary)', marginBottom: '0.75rem', lineHeight: 1.5 }}>
+                        Start by logging your first charging session. Head to the <strong>Charging</strong> tab to enter your data and unlock all your EV analytics.
+                    </p>
+                    <motion.button
+                        whileTap={{ scale: 0.95 }}
+                        className="primary-btn"
+                        onClick={() => navigate('/charging')}
+                        style={{ padding: '10px 24px', fontSize: '0.85rem' }}
+                    >
+                        ⚡ Go to Charging
+                    </motion.button>
+                </motion.div>
+            )}
+
             {/* ── Summary Tiles — Compact Horizontal Layout ── */}
             <div className="overflow-x-auto no-scrollbar -mx-4 px-4 pb-2">
                 <div className="grid grid-cols-3 md:grid-cols-5 gap-2 min-w-[320px]">
-                    {summaryTiles.map((tile, i) => (
-                        <motion.div
-                            key={tile.label}
-                            initial={{ opacity: 0, scale: 0.8 }}
-                            animate={{ opacity: 1, scale: 1 }}
-                            transition={{ delay: i * 0.08, type: 'spring', stiffness: 200 }}
-                            className="glass-panel border-t-2"
-                            style={{
-                                background: tile.bg,
-                                borderColor: tile.border,
-                                padding: '0.5rem 0.625rem',
-                                overflow: 'hidden',
-                            }}
-                        >
-                            {/* Row: Icon + Number side-by-side */}
-                            <div style={{ display: 'flex', alignItems: 'center', gap: '0.375rem' }}>
+                    {summaryTiles.map((tile, i) => {
+                        // Reduce font for large numbers
+                        const isLargeNum = String(tile.value).length > 5;
+                        return (
+                            <motion.div
+                                key={tile.label}
+                                initial={{ opacity: 0, scale: 0.8 }}
+                                animate={{ opacity: 1, scale: 1 }}
+                                transition={{ delay: i * 0.08, type: 'spring', stiffness: 200 }}
+                                className="glass-panel border-t-2"
+                                style={{
+                                    background: tile.bg,
+                                    borderColor: tile.border,
+                                    padding: '0.5rem 0.625rem',
+                                    overflow: 'hidden',
+                                }}
+                            >
+                                {/* Line 1: Key Number only */}
                                 <div style={{
-                                    padding: '4px',
-                                    borderRadius: '6px',
-                                    backgroundColor: 'rgba(0,0,0,0.15)',
-                                    flexShrink: 0,
-                                    lineHeight: 0,
-                                }}>
-                                    <tile.icon style={{ width: '14px', height: '14px', color: tile.iconColor }} />
-                                </div>
-                                <div style={{
-                                    fontSize: 'clamp(1rem, 3.5vw, 1.5rem)',
+                                    fontSize: isLargeNum ? 'clamp(0.8rem, 2.8vw, 1.15rem)' : 'clamp(1rem, 3.5vw, 1.5rem)',
                                     fontWeight: 800,
                                     lineHeight: 1.1,
                                     color: 'var(--text-primary)',
@@ -177,37 +210,49 @@ const Dashboard = () => {
                                 }}>
                                     {tile.value}
                                 </div>
-                            </div>
 
-                            {/* Unit + Label below */}
-                            <div style={{ marginTop: '0.25rem' }}>
-                                {tile.unit && (
+                                {/* Line 2: Icon + Unit/Label */}
+                                <div style={{ marginTop: '0.25rem', display: 'flex', alignItems: 'center', gap: '0.25rem' }}>
                                     <div style={{
-                                        fontSize: 'clamp(0.55rem, 1.8vw, 0.7rem)',
-                                        fontWeight: 600,
-                                        color: 'var(--text-secondary)',
-                                        opacity: 0.7,
+                                        padding: '2px',
+                                        borderRadius: '4px',
+                                        backgroundColor: 'rgba(0,0,0,0.15)',
+                                        flexShrink: 0,
+                                        lineHeight: 0,
                                     }}>
-                                        {tile.unit}
+                                        <tile.icon style={{ width: '10px', height: '10px', color: tile.iconColor }} />
                                     </div>
-                                )}
-                                <div style={{
-                                    fontSize: 'clamp(0.5rem, 1.6vw, 0.65rem)',
-                                    fontWeight: 700,
-                                    textTransform: 'uppercase',
-                                    letterSpacing: '0.04em',
-                                    color: 'var(--text-secondary)',
-                                    opacity: 0.6,
-                                    lineHeight: 1.2,
-                                    overflow: 'hidden',
-                                    textOverflow: 'ellipsis',
-                                    whiteSpace: 'nowrap',
-                                }}>
-                                    {tile.label}
+                                    <div style={{ minWidth: 0 }}>
+                                        {tile.unit && (
+                                            <div style={{
+                                                fontSize: 'clamp(0.5rem, 1.6vw, 0.65rem)',
+                                                fontWeight: 600,
+                                                color: 'var(--text-secondary)',
+                                                opacity: 0.7,
+                                                lineHeight: 1.2,
+                                            }}>
+                                                {tile.unit}
+                                            </div>
+                                        )}
+                                        <div style={{
+                                            fontSize: 'clamp(0.45rem, 1.4vw, 0.6rem)',
+                                            fontWeight: 700,
+                                            textTransform: 'uppercase',
+                                            letterSpacing: '0.04em',
+                                            color: 'var(--text-secondary)',
+                                            opacity: 0.6,
+                                            lineHeight: 1.2,
+                                            overflow: 'hidden',
+                                            textOverflow: 'ellipsis',
+                                            whiteSpace: 'nowrap',
+                                        }}>
+                                            {tile.label}
+                                        </div>
+                                    </div>
                                 </div>
-                            </div>
-                        </motion.div>
-                    ))}
+                            </motion.div>
+                        );
+                    })}
                 </div>
             </div>
 

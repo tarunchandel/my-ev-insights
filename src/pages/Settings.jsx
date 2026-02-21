@@ -3,12 +3,17 @@ import { useApp } from '../context/AppContext';
 import { useToast } from '../components/Toast';
 import { Settings as SettingsIcon, Download, Upload, Moon, Sun, Car, FileText, Database } from 'lucide-react';
 import { motion } from 'framer-motion';
+import { Capacitor } from '@capacitor/core';
+import { Filesystem, Directory, Encoding } from '@capacitor/filesystem';
+import { Share } from '@capacitor/share';
 
 const Settings = () => {
     const { settings, updateSettings, charges, bills, expenses, restoreData } = useApp();
     const { showToast } = useToast();
     const [theme, setTheme] = useState(document.documentElement.classList.contains('dark') ? 'dark' : 'light');
     const fileInput = useRef(null);
+
+    const isNative = Capacitor.isNativePlatform();
 
     const toggleTheme = () => {
         const next = theme === 'dark' ? 'light' : 'dark';
@@ -18,12 +23,49 @@ const Settings = () => {
     };
 
     const handleChange = (e) => {
-        updateSettings({ ...settings, [e.target.name]: e.target.value });
+        const value = e.target.type === 'number' ? parseFloat(e.target.value) : e.target.value;
+        updateSettings({ ...settings, [e.target.name]: value });
+    };
+
+    // ── Saving/Sharing Logic ──
+    const saveOrShareFile = async (content, filename, mimeType) => {
+        try {
+            if (isNative) {
+                // For native: Save to temp directory and Share
+                const { uri } = await Filesystem.writeFile({
+                    path: filename,
+                    data: content,
+                    directory: Directory.Cache,
+                    encoding: Encoding.UTF8,
+                });
+
+                await Share.share({
+                    title: filename,
+                    text: `Exported ${filename}`,
+                    url: uri,
+                    dialogTitle: `Save ${filename}`,
+                });
+                showToast(`Exported ${filename} 📤`, 'success');
+            } else {
+                // For web: Standard download link
+                const blob = new Blob([content], { type: mimeType });
+                const url = URL.createObjectURL(blob);
+                const link = document.createElement('a');
+                link.href = url;
+                link.download = filename;
+                link.click();
+                URL.revokeObjectURL(url);
+                showToast(`Exported ${filename} 💾`, 'success');
+            }
+        } catch (err) {
+            console.error('Save failed:', err);
+            showToast('Failed to save file', 'error');
+        }
     };
 
     // ── Export CSV ──
     const exportToCSV = (data, filename) => {
-        if (!data.length) { showToast('No data to export', 'warning'); return; }
+        if (!data || !data.length) { showToast('No data to export', 'warning'); return; }
         const headers = Object.keys(data[0]);
         const csvContent = [
             headers.join(','),
@@ -31,23 +73,15 @@ const Settings = () => {
                 JSON.stringify(row[fieldName], (_, value) => value === null ? '' : value)
             ).join(','))
         ].join('\n');
-        const blob = new Blob([csvContent], { type: 'text/csv' });
-        const url = URL.createObjectURL(blob);
-        const link = document.createElement('a');
-        link.href = url; link.download = filename; link.click();
-        URL.revokeObjectURL(url);
-        showToast(`Exported ${filename} ✅`, 'success');
+
+        saveOrShareFile(csvContent, filename, 'text/csv');
     };
 
     // ── Export full JSON backup ──
     const exportBackup = () => {
         const payload = { charges, bills, expenses, settings, exportedAt: new Date().toISOString() };
-        const blob = new Blob([JSON.stringify(payload, null, 2)], { type: 'application/json' });
-        const url = URL.createObjectURL(blob);
-        const link = document.createElement('a');
-        link.href = url; link.download = `ev-insights-backup-${Date.now()}.json`; link.click();
-        URL.revokeObjectURL(url);
-        showToast('Full backup saved! 💾', 'success');
+        const content = JSON.stringify(payload, null, 2);
+        saveOrShareFile(content, `ev-insights-backup-${Date.now()}.json`, 'application/json');
     };
 
     // ── Import JSON backup ──
@@ -64,7 +98,8 @@ const Settings = () => {
                 }
                 restoreData(data);
                 showToast('Data restored! 🎉', 'success');
-            } catch {
+            } catch (err) {
+                console.error('Import failed:', err);
                 showToast('Failed to read file', 'error');
             }
         };

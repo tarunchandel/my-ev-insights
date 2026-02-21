@@ -81,8 +81,11 @@ export const AppProvider = ({ children }) => {
     // Derived Stats Helper
     const stats = useMemo(() => {
         const totalSpent = charges.reduce((acc, c) => acc + (parseFloat(c.cost) || 0), 0);
-        const totalKms = charges.reduce((acc, c) => acc + (parseFloat(c.drivenKm) || 0), 0);
         const totalUnits = charges.reduce((acc, c) => acc + (parseFloat(c.units) || 0), 0);
+
+        // Total distance = latest odometer reading (sorted by timestamp descending)
+        const sorted = [...charges].sort((a, b) => (b.timestamp || 0) - (a.timestamp || 0));
+        const totalKms = sorted.length > 0 ? (parseFloat(sorted[0].odometer) || 0) : 0;
 
         return { totalSpent, totalKms, totalUnits };
     }, [charges]);

@@ -24,9 +24,11 @@ dist-ssr
 *.sw?
 
 # Security - NEVER upload these to a public repo!
-service-account.json
-*.jks
-gradle.properties
+**/service-account.json
+**/*.jks
+**/google-services.json
+**/google-services.plist
+**/gradle.properties
 .env
 .env.*
 

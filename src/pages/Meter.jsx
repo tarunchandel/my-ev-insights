@@ -102,12 +102,15 @@ const Meter = () => {
             {/* ── Summary mini ── */}
             <div className="grid grid-cols-3 gap-2">
                 {[
-                    { label: 'Total Paid', value: `${settings.currency}${totalSpent.toLocaleString()}`, gradient: 'linear-gradient(135deg, rgba(168,85,247,0.15), rgba(99,102,241,0.15))' },
-                    { label: 'Total kWh', value: `${totalUnits.toFixed(1)}`, gradient: 'linear-gradient(135deg, rgba(6,182,212,0.15), rgba(59,130,246,0.15))' },
-                    { label: 'Avg Rate', value: `${settings.currency}${avgRate.toFixed(2)}/kWh`, gradient: 'linear-gradient(135deg, rgba(249,115,22,0.15), rgba(239,68,68,0.15))' },
+                    { label: 'Total Paid', value: `${settings.currency}${totalSpent.toLocaleString()}`, unit: null, gradient: 'linear-gradient(135deg, rgba(168,85,247,0.15), rgba(99,102,241,0.15))' },
+                    { label: 'Total kWh', value: `${totalUnits.toFixed(1)}`, unit: null, gradient: 'linear-gradient(135deg, rgba(6,182,212,0.15), rgba(59,130,246,0.15))' },
+                    { label: 'Avg Rate', value: `${settings.currency}${avgRate.toFixed(2)}`, unit: '/kWh', gradient: 'linear-gradient(135deg, rgba(249,115,22,0.15), rgba(239,68,68,0.15))' },
                 ].map(t => (
                     <div key={t.label} className="glass-panel p-3 text-center" style={{ background: t.gradient }}>
                         <div style={{ fontSize: 'clamp(0.9rem, 3.5vw, 1.25rem)', fontWeight: 800, lineHeight: 1.1 }}>{t.value}</div>
+                        {t.unit && (
+                            <div style={{ fontSize: 'clamp(0.55rem, 1.8vw, 0.7rem)', fontWeight: 600, color: 'var(--text-secondary)', opacity: 0.7, marginTop: '2px' }}>{t.unit}</div>
+                        )}
                         <div style={{ fontSize: 'var(--font-size-tile-label)', textTransform: 'uppercase', letterSpacing: '0.04em', color: 'var(--text-secondary)', opacity: 0.6, marginTop: '4px' }}>{t.label}</div>
                     </div>
                 ))}

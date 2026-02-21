@@ -15,7 +15,7 @@ const Layout = () => {
     ];
 
     return (
-        <div className="min-h-screen w-full relative flex flex-col overflow-hidden">
+        <div className="min-h-screen w-full relative flex flex-col overflow-hidden px-safe">
 
             {/* Main Content Area — padding-bottom accounts for navbar + safe area */}
             <div className="flex-1 overflow-y-auto overflow-x-hidden relative flex flex-col pt-safe"

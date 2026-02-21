@@ -35,6 +35,17 @@ subprojects {
                 }
             }
         }
+        // Force Kotlin to 17 and override toolchain if present (fixing Capacitor 8 plugin issues)
+        if (project.plugins.hasPlugin("org.jetbrains.kotlin.android")) {
+            kotlin {
+                jvmToolchain(17)
+            }
+        }
+    }
+    tasks.withType(org.jetbrains.kotlin.gradle.tasks.KotlinCompile).configureEach {
+        kotlinOptions {
+            jvmTarget = "17"
+        }
     }
 }
 
