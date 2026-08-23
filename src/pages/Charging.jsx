@@ -178,7 +178,6 @@ const Charging = () => {
         // Build receipt HTML
         const receiptHtmls = selected.map(charge => {
             const receiptId = generateReceiptId(charge);
-            const displayCompany = getDisplayCompany(charge);
             const dateStr = new Date(charge.timestamp).toLocaleDateString('en-GB', {
                 weekday: 'short', day: '2-digit', month: 'short', year: 'numeric'
             });
@@ -191,7 +190,6 @@ const Charging = () => {
                 ? 'linear-gradient(135deg, rgba(16,185,129,0.08), rgba(52,211,153,0.12))'
                 : 'linear-gradient(135deg, rgba(59,130,246,0.08), rgba(96,165,250,0.12))';
             const accentBorder = isHome ? 'rgba(16,185,129,0.2)' : 'rgba(59,130,246,0.2)';
-            const emoji = isHome ? '🏠' : '⚡';
             const locationLabel = isHome ? 'Mahavitran' : (charge.type || 'Public');
 
             const rows = [
@@ -242,21 +240,11 @@ const Charging = () => {
                 ? `<div style="font-size:0.7rem;color:#9ca3af;margin-top:0.35rem;">${settings.currency}${(Number(charge.cost) / Number(charge.units)).toFixed(2)} / kWh</div>`
                 : '';
 
-            let noteSection = '';
-            if (charge.note) {
-                noteSection = `
-                    <hr style="border:none;border-top:2px dashed rgba(0,0,0,0.1);margin:1rem 0;" />
-                    <div style="font-size:0.75rem;color:#6b7280;text-align:center;font-style:italic;padding:0.5rem 0;">📄 ${charge.note}</div>
-                `;
-            }
-
             return `
                 <div style="background:#fefefe;color:#1a1a2e;padding:1.75rem 1.5rem 1.5rem;border:2px solid rgba(0,0,0,0.12);border-radius:4px;font-family:'Outfit',system-ui,sans-serif;max-width:380px;margin:0 auto;page-break-inside:avoid;break-inside:avoid;">
                     <!-- Header -->
                     <div style="text-align:center;margin-bottom:1.25rem;">
-                        <div style="width:48px;height:48px;border-radius:50%;display:flex;align-items:center;justify-content:center;margin:0 auto 0.75rem;font-size:1.5rem;background:${isHome ? 'rgba(16,185,129,0.15)' : 'rgba(59,130,246,0.15)'};border:2px solid ${isHome ? 'rgba(16,185,129,0.3)' : 'rgba(59,130,246,0.3)'}">${emoji}</div>
-                        <h3 style="font-size:1.1rem;font-weight:700;letter-spacing:-0.02em;margin:0;color:#1a1a2e;">${displayCompany} Charging</h3>
-                        <p style="font-size:0.7rem;color:#9ca3af;text-transform:uppercase;letter-spacing:0.1em;margin-top:0.25rem;">Charging Session Receipt</p>
+                        <h2 style="font-size:1.25rem;font-weight:700;letter-spacing:-0.02em;margin:0 0 0.35rem;color:#1a1a2e;">Charging Session Receipt</h2>
                         <div style="font-size:0.65rem;color:#9ca3af;font-family:monospace;text-align:center;letter-spacing:0.08em;margin-top:0.25rem;background:rgba(0,0,0,0.03);padding:0.25rem 0.5rem;border-radius:4px;display:inline-block;">${receiptId}</div>
                     </div>
 
@@ -280,8 +268,6 @@ const Charging = () => {
                         <div style="font-size:2rem;font-weight:800;letter-spacing:-0.03em;line-height:1;color:${accentColor};">${settings.currency}${charge.cost || '0'}</div>
                         ${costPerKwh}
                     </div>
-
-                    ${noteSection}
 
                     <hr style="border:none;border-top:2px dashed rgba(0,0,0,0.1);margin:1rem 0;" />
 
