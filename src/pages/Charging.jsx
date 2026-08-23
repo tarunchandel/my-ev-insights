@@ -6,6 +6,10 @@ import { motion, AnimatePresence } from 'framer-motion';
 import {
     ResponsiveContainer, BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend
 } from 'recharts';
+import { Filesystem, Directory } from '@capacitor/filesystem';
+import { Share } from '@capacitor/share';
+import { Capacitor } from '@capacitor/core';
+import html2pdf from 'html2pdf.js';
 
 const Charging = () => {
     const { addCharge, updateCharge, deleteCharge, charges, settings } = useApp();
@@ -165,6 +169,7 @@ const Charging = () => {
     }, []);
 
     // --- PDF Export ---
+    // --- PDF Export ---
     const exportToPDF = useCallback(async () => {
         const selected = charges.filter(c => selectedForExport.includes(c.id));
         if (selected.length === 0) return;
@@ -304,11 +309,6 @@ const Charging = () => {
                 <title>EV Charging Receipts</title>
                 <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
                 <style>
-                    @media print {
-                        body { margin: 0; padding: 0; }
-                        .receipt-page { page-break-after: always; }
-                        .receipt-page:last-child { page-break-after: auto; }
-                    }
                     body {
                         font-family: 'Outfit', system-ui, sans-serif;
                         background: #fff;
@@ -319,8 +319,11 @@ const Charging = () => {
                         display: flex;
                         justify-content: center;
                         align-items: flex-start;
-                        min-height: calc(100vh - 40px);
                         padding: 20px 0;
+                        page-break-after: always;
+                    }
+                    .receipt-page:last-child {
+                        page-break-after: auto;
                     }
                 </style>
             </head>
@@ -330,21 +333,45 @@ const Charging = () => {
             </html>
         `;
 
-        // Open print window
-        const printWindow = window.open('', '_blank', 'width=500,height=700');
-        if (printWindow) {
-            printWindow.document.write(printDoc);
-            printWindow.document.close();
-            // Wait for fonts to load
-            setTimeout(() => {
-                printWindow.print();
-                printWindow.close();
+        try {
+            const element = document.createElement('div');
+            element.innerHTML = printDoc;
+
+            const opt = {
+                margin: 0,
+                filename: `EV_Receipts_${Date.now()}.pdf`,
+                image: { type: 'jpeg', quality: 0.98 },
+                html2canvas: { scale: 2, useCORS: true },
+                jsPDF: { unit: 'in', format: 'letter', orientation: 'portrait' }
+            };
+
+            if (Capacitor.isNativePlatform()) {
+                const pdfBase64 = await html2pdf().from(element).set(opt).output('datauristring');
+                const base64Data = pdfBase64.split(',')[1];
+                const fileName = `EV_Receipts_${Date.now()}.pdf`;
+                
+                const savedFile = await Filesystem.writeFile({
+                    path: fileName,
+                    data: base64Data,
+                    directory: Directory.Documents
+                });
+                
+                await Share.share({
+                    title: 'EV Charging Receipts',
+                    url: savedFile.uri
+                });
+                
                 setIsExporting(false);
                 showToast(`${selected.length} receipt${selected.length > 1 ? 's' : ''} exported! 📄`, 'success');
-            }, 800);
-        } else {
+            } else {
+                await html2pdf().from(element).set(opt).save();
+                setIsExporting(false);
+                showToast(`${selected.length} receipt${selected.length > 1 ? 's' : ''} exported! 📄`, 'success');
+            }
+        } catch (error) {
+            console.error('Export error:', error);
             setIsExporting(false);
-            showToast('Please allow pop-ups to export PDF', 'error');
+            showToast('Failed to export PDF', 'error');
         }
     }, [charges, selectedForExport, settings, generateReceiptId, getDisplayCompany, showToast]);
 
