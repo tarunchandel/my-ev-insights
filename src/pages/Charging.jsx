@@ -21,12 +21,25 @@ const Charging = () => {
     const [isExporting, setIsExporting] = useState(false);
     const printRef = useRef(null);
 
-    // Generate a unique receipt ID from charge data
+    // Generate a unique receipt ID from charge data with random 4-digit number
     const generateReceiptId = useCallback((charge) => {
-        const date = new Date(charge.timestamp);
-        const dateStr = date.toISOString().split('T')[0].replace(/-/g, '');
-        const shortId = String(charge.id).slice(-4).toUpperCase().padStart(4, '0');
-        return `RCP-${dateStr}-${shortId}`;
+        if (!charge) return 'RCP-00000000-0000';
+        const date = new Date(charge.timestamp || Date.now());
+        const dateStr = !isNaN(date.getTime())
+            ? date.toISOString().split('T')[0].replace(/-/g, '')
+            : new Date().toISOString().split('T')[0].replace(/-/g, '');
+
+        // Hash charge attributes so each session gets a stable, unique 4-digit random number (1000-9999)
+        const seed = `${charge.id || ''}_${charge.timestamp || ''}_${charge.odometer || ''}_${charge.cost || ''}_${charge.units || ''}`;
+        let hash = 0;
+        for (let i = 0; i < seed.length; i++) {
+            hash = ((hash << 5) - hash) + seed.charCodeAt(i);
+            hash |= 0;
+        }
+        // Mix bits to ensure uniform distribution across 1000..9999
+        const mixed = Math.abs((Math.imul(hash ^ 0x5DEECE66, 0x4E6D) + 1013904223) | 0);
+        const randomNum = (mixed % 9000) + 1000;
+        return `RCP-${dateStr}-${randomNum}`;
     }, []);
 
     // Display name mapping: 'Home' type → 'Mahavitran' on receipts

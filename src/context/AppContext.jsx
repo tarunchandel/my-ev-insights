@@ -25,7 +25,8 @@ export const AppProvider = ({ children }) => {
 
     // --- Charges Logic ---
     const addCharge = (charge) => {
-        const newCharge = { ...charge, id: Date.now().toString() };
+        const randomSuffix = Math.floor(1000 + Math.random() * 9000);
+        const newCharge = { ...charge, id: `${Date.now()}-${randomSuffix}` };
         setCharges((prev) => [newCharge, ...prev]);
     };
 
@@ -39,7 +40,8 @@ export const AppProvider = ({ children }) => {
 
     // --- Bills Logic ---
     const addBill = (bill) => {
-        const newBill = { ...bill, id: Date.now().toString() };
+        const randomSuffix = Math.floor(1000 + Math.random() * 9000);
+        const newBill = { ...bill, id: `${Date.now()}-${randomSuffix}` };
         setBills((prev) => [newBill, ...prev]);
     };
 
@@ -55,7 +57,8 @@ export const AppProvider = ({ children }) => {
     const [expenses, setExpenses] = useLocalStorage('ev_expenses', []);
 
     const addExpense = (exp) => {
-        const newExp = { ...exp, id: Date.now().toString() };
+        const randomSuffix = Math.floor(1000 + Math.random() * 9000);
+        const newExp = { ...exp, id: `${Date.now()}-${randomSuffix}` };
         setExpenses((prev) => [newExp, ...prev]);
     };
 
