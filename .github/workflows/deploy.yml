@@ -134,13 +134,23 @@ jobs:
             exit $STATUS
           fi
 
-      - name: Promote Release Artifact to Closed Testing (Alpha) Track
+      - name: Publish Release Bundle to Closed Testing (Alpha) Track
         working-directory: android
+        env:
+          RELEASE_STORE_FILE: my-release-key.jks
+          RELEASE_STORE_PASSWORD: ${{ secrets.RELEASE_STORE_PASSWORD }}
+          RELEASE_KEY_ALIAS: ${{ secrets.RELEASE_KEY_ALIAS }}
+          RELEASE_KEY_PASSWORD: ${{ secrets.RELEASE_KEY_PASSWORD }}
         run: |
           set +e
-          ./gradlew promoteReleaseArtifact \
-            --from-track=internal \
-            --promote-track=alpha \
+          ./gradlew publishReleaseBundle \
+            -PversionCode=${{ steps.versioning.outputs.version_code }} \
+            -PversionName=${{ steps.versioning.outputs.version_name }} \
+            -Ptrack=alpha \
+            -PRELEASE_STORE_FILE=my-release-key.jks \
+            -PRELEASE_STORE_PASSWORD="${{ secrets.RELEASE_STORE_PASSWORD }}" \
+            -PRELEASE_KEY_ALIAS="${{ secrets.RELEASE_KEY_ALIAS }}" \
+            -PRELEASE_KEY_PASSWORD="${{ secrets.RELEASE_KEY_PASSWORD }}" \
             --stacktrace > promote_output.log 2>&1
           STATUS=$?
           cat promote_output.log
