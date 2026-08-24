@@ -24,7 +24,7 @@ android {
             def keyAl = project.findProperty('RELEASE_KEY_ALIAS') ?: System.getenv('RELEASE_KEY_ALIAS')
             def keyPwd = project.findProperty('RELEASE_KEY_PASSWORD') ?: System.getenv('RELEASE_KEY_PASSWORD')
 
-            if (storeFilePath && file(storeFilePath).exists() && storePwd && keyAl && keyPwd) {
+            if (storePwd && keyAl && keyPwd) {
                 storeFile file(storeFilePath)
                 storePassword storePwd
                 keyAlias keyAl
@@ -76,6 +76,7 @@ try {
 }
 
 play {
-    serviceAccountCredentials = file("service-account.json")
-    track = "internal" // Default track, can be changed to 'production' or 'beta'
+    serviceAccountCredentials.set(file("service-account.json"))
+    track.set(project.findProperty('track') ?: "internal")
+    defaultToAppBundles.set(true)
 }
