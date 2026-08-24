@@ -117,6 +117,7 @@ jobs:
           RELEASE_KEY_ALIAS: ${{ secrets.RELEASE_KEY_ALIAS }}
           RELEASE_KEY_PASSWORD: ${{ secrets.RELEASE_KEY_PASSWORD }}
         run: |
+          set +e
           ./gradlew publishReleaseBundle \
             -PversionCode=${{ steps.versioning.outputs.version_code }} \
             -PversionName=${{ steps.versioning.outputs.version_name }} \
@@ -125,12 +126,25 @@ jobs:
             -PRELEASE_STORE_PASSWORD="${{ secrets.RELEASE_STORE_PASSWORD }}" \
             -PRELEASE_KEY_ALIAS="${{ secrets.RELEASE_KEY_ALIAS }}" \
             -PRELEASE_KEY_PASSWORD="${{ secrets.RELEASE_KEY_PASSWORD }}" \
-            --stacktrace
+            --stacktrace > build_output.log 2>&1
+          STATUS=$?
+          cat build_output.log
+          if [ $STATUS -ne 0 ]; then
+            echo "::error title=Gradle Build Error::$(tail -n 25 build_output.log)"
+            exit $STATUS
+          fi
 
       - name: Promote Release Artifact to Closed Testing (Alpha) Track
         working-directory: android
         run: |
+          set +e
           ./gradlew promoteReleaseArtifact \
             --from-track=internal \
             --promote-track=alpha \
-            --stacktrace
+            --stacktrace > promote_output.log 2>&1
+          STATUS=$?
+          cat promote_output.log
+          if [ $STATUS -ne 0 ]; then
+            echo "::error title=Promote Error::$(tail -n 25 promote_output.log)"
+            exit $STATUS
+          fi
