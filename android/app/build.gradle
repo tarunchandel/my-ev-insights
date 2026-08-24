@@ -76,7 +76,7 @@ try {
 }
 
 play {
-    serviceAccountCredentials.set(file("service-account.json"))
-    track.set(project.findProperty('track') ?: "internal")
-    defaultToAppBundles.set(true)
+    serviceAccountCredentials = file("service-account.json")
+    track = project.findProperty('track') ?: "internal"
+    defaultToAppBundles = true
 }
