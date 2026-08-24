@@ -1,4 +1,4 @@
-﻿name: Deploy to Google Play (Internal & Closed Testing)
+name: Deploy to Google Play (Internal & Closed Testing)
 
 on:
   push:
@@ -37,8 +37,18 @@ jobs:
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: 20
+          node-version: 22
           cache: 'npm'
+
+      - name: Setup Java 21
+        uses: actions/setup-java@v4
+        with:
+          distribution: 'temurin'
+          java-version: '21'
+          cache: 'gradle'
+
+      - name: Grant Execute Permission for Gradlew
+        run: chmod +x android/gradlew
 
       - name: Install Dependencies
         run: npm ci
@@ -48,16 +58,6 @@ jobs:
 
       - name: Sync Capacitor Android
         run: npx cap sync android
-
-      - name: Setup Java 17
-        uses: actions/setup-java@v4
-        with:
-          distribution: 'temurin'
-          java-version: '17'
-          cache: 'gradle'
-
-      - name: Grant Execute Permission for Gradlew
-        run: chmod +x android/gradlew
 
       - name: Restore Keystore & Play Service Account Credentials
         env:

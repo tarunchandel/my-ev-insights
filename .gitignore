@@ -37,4 +37,3 @@ android/app/build/
 android/.gradle/
 *.apk
 *.aab
-capacitor-cordova-android-plugins/
