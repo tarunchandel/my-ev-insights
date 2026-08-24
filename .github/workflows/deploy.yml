@@ -121,15 +121,11 @@ jobs:
           ./gradlew bundleRelease \
             -PversionCode=${{ steps.versioning.outputs.version_code }} \
             -PversionName=${{ steps.versioning.outputs.version_name }} \
-            -PRELEASE_STORE_FILE=my-release-key.jks \
-            -PRELEASE_STORE_PASSWORD="${{ secrets.RELEASE_STORE_PASSWORD }}" \
-            -PRELEASE_KEY_ALIAS="${{ secrets.RELEASE_KEY_ALIAS }}" \
-            -PRELEASE_KEY_PASSWORD="${{ secrets.RELEASE_KEY_PASSWORD }}" \
             --stacktrace > bundle_output.log 2>&1
           STATUS=$?
           cat bundle_output.log
           if [ $STATUS -ne 0 ]; then
-            grep -E "FAILURE|What went wrong|\> |Caused by|Error|Exception" bundle_output.log | tail -n 20 | while IFS= read -r line; do echo "::error::$line"; done
+            grep -A 12 "What went wrong:" bundle_output.log | while IFS= read -r line; do echo "::error::$line"; done
             exit $STATUS
           fi
 
@@ -146,15 +142,11 @@ jobs:
             -PversionCode=${{ steps.versioning.outputs.version_code }} \
             -PversionName=${{ steps.versioning.outputs.version_name }} \
             -Ptrack=internal \
-            -PRELEASE_STORE_FILE=my-release-key.jks \
-            -PRELEASE_STORE_PASSWORD="${{ secrets.RELEASE_STORE_PASSWORD }}" \
-            -PRELEASE_KEY_ALIAS="${{ secrets.RELEASE_KEY_ALIAS }}" \
-            -PRELEASE_KEY_PASSWORD="${{ secrets.RELEASE_KEY_PASSWORD }}" \
             --stacktrace > build_output.log 2>&1
           STATUS=$?
           cat build_output.log
           if [ $STATUS -ne 0 ]; then
-            grep -E "FAILURE|What went wrong|\> |Caused by|Error|Exception" build_output.log | tail -n 20 | while IFS= read -r line; do echo "::error::$line"; done
+            grep -A 12 "What went wrong:" build_output.log | while IFS= read -r line; do echo "::error::$line"; done
             exit $STATUS
           fi
 
@@ -171,15 +163,11 @@ jobs:
             -PversionCode=${{ steps.versioning.outputs.version_code }} \
             -PversionName=${{ steps.versioning.outputs.version_name }} \
             -Ptrack=alpha \
-            -PRELEASE_STORE_FILE=my-release-key.jks \
-            -PRELEASE_STORE_PASSWORD="${{ secrets.RELEASE_STORE_PASSWORD }}" \
-            -PRELEASE_KEY_ALIAS="${{ secrets.RELEASE_KEY_ALIAS }}" \
-            -PRELEASE_KEY_PASSWORD="${{ secrets.RELEASE_KEY_PASSWORD }}" \
             --stacktrace > promote_output.log 2>&1
           STATUS=$?
           cat promote_output.log
           if [ $STATUS -ne 0 ]; then
-            grep -E "FAILURE|What went wrong|\> |Caused by|Error|Exception" promote_output.log | tail -n 20 | while IFS= read -r line; do echo "::error::$line"; done
+            grep -A 12 "What went wrong:" promote_output.log | while IFS= read -r line; do echo "::error::$line"; done
             exit $STATUS
           fi
 
@@ -189,5 +177,6 @@ jobs:
         with:
           name: build-logs
           path: |
+            android/bundle_output.log
             android/build_output.log
             android/promote_output.log
