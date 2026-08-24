@@ -109,6 +109,23 @@ jobs:
           echo "version_name=$FINAL_NAME" >> $GITHUB_OUTPUT
           echo "Building Version Name: $FINAL_NAME with Version Code: $FINAL_CODE"
 
+      - name: Build Android App Bundle (bundleRelease)
+        working-directory: android
+        env:
+          RELEASE_STORE_FILE: my-release-key.jks
+          RELEASE_STORE_PASSWORD: ${{ secrets.RELEASE_STORE_PASSWORD }}
+          RELEASE_KEY_ALIAS: ${{ secrets.RELEASE_KEY_ALIAS }}
+          RELEASE_KEY_PASSWORD: ${{ secrets.RELEASE_KEY_PASSWORD }}
+        run: |
+          ./gradlew bundleRelease \
+            -PversionCode=${{ steps.versioning.outputs.version_code }} \
+            -PversionName=${{ steps.versioning.outputs.version_name }} \
+            -PRELEASE_STORE_FILE=my-release-key.jks \
+            -PRELEASE_STORE_PASSWORD="${{ secrets.RELEASE_STORE_PASSWORD }}" \
+            -PRELEASE_KEY_ALIAS="${{ secrets.RELEASE_KEY_ALIAS }}" \
+            -PRELEASE_KEY_PASSWORD="${{ secrets.RELEASE_KEY_PASSWORD }}" \
+            --stacktrace
+
       - name: Publish Release Bundle to Internal Testing Track
         working-directory: android
         env:
@@ -130,7 +147,7 @@ jobs:
           STATUS=$?
           cat build_output.log
           if [ $STATUS -ne 0 ]; then
-            echo "::error title=Gradle Build Error::$(tail -n 25 build_output.log)"
+            grep -E "FAILURE|What went wrong|\> |Caused by|Error|Exception" build_output.log | tail -n 20 | while IFS= read -r line; do echo "::error::$line"; done
             exit $STATUS
           fi
 
@@ -155,6 +172,15 @@ jobs:
           STATUS=$?
           cat promote_output.log
           if [ $STATUS -ne 0 ]; then
-            echo "::error title=Promote Error::$(tail -n 25 promote_output.log)"
+            grep -E "FAILURE|What went wrong|\> |Caused by|Error|Exception" promote_output.log | tail -n 20 | while IFS= read -r line; do echo "::error::$line"; done
             exit $STATUS
           fi
+
+      - name: Upload Build Logs on Failure
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: build-logs
+          path: |
+            android/build_output.log
+            android/promote_output.log
