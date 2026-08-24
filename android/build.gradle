@@ -36,12 +36,11 @@ subprojects {
             }
         }
         if (project.plugins.hasPlugin("org.jetbrains.kotlin.android")) {
-            // Kotlin will use the project JDK / compileOptions
-        }
-    }
-    tasks.withType(org.jetbrains.kotlin.gradle.tasks.KotlinCompile).configureEach {
-        kotlinOptions {
-            jvmTarget = "21"
+            project.tasks.matching { it.name.startsWith("compile") && it.name.endsWith("Kotlin") }.configureEach {
+                kotlinOptions {
+                    jvmTarget = "21"
+                }
+            }
         }
     }
 }
