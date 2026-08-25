@@ -100,41 +100,42 @@ const Dashboard = () => {
         padding: '6px 10px',
     };
 
-    // Sub-tile helper component
+    // Sub-tile helper component with high-contrast, crisp typography and clear backgrounds
     const StatTile = ({ label, value, unit, highlight = false, accentColor = 'var(--text-primary)' }) => (
         <div
             className="glass-panel flex flex-col justify-center items-center text-center"
             style={{
-                background: 'rgba(0, 0, 0, 0.15)',
-                borderColor: highlight ? 'var(--glass-shine)' : 'rgba(255, 255, 255, 0.08)',
+                background: 'rgba(255, 255, 255, 0.06)',
+                borderColor: highlight ? 'var(--glass-shine)' : 'rgba(255, 255, 255, 0.12)',
                 borderWidth: '1px',
-                padding: '0.5rem 0.35rem',
-                minHeight: '62px',
+                padding: '0.75rem 0.5rem',
+                minHeight: '74px',
+                borderRadius: '14px',
             }}
         >
             <div style={{
-                fontSize: 'clamp(0.95rem, 3.2vw, 1.25rem)',
+                fontSize: 'clamp(1.05rem, 3.5vw, 1.35rem)',
                 fontWeight: 800,
                 color: accentColor,
-                lineHeight: 1.1,
+                lineHeight: 1.15,
             }}>
                 {value}
             </div>
             <div style={{
-                fontSize: '0.62rem',
+                fontSize: '0.68rem',
                 fontWeight: 700,
                 textTransform: 'uppercase',
                 letterSpacing: '0.04em',
                 color: 'var(--text-secondary)',
-                marginTop: '3px',
-                opacity: 0.85,
+                marginTop: '4px',
+                opacity: 0.95,
             }}>
-                {label} {unit && <span style={{ opacity: 0.65 }}>({unit})</span>}
+                {label} {unit && <span style={{ opacity: 0.75 }}>({unit})</span>}
             </div>
         </div>
     );
 
-    // Definition of the 4 Stacked Horizontal Bars
+    // Definition of the 4 Stacked Horizontal Bars with vibrant, high-contrast themes
     const bars = [
         {
             id: 'spent',
@@ -143,59 +144,59 @@ const Dashboard = () => {
             value: `${CUR}${stats.totalSpent.toLocaleString()}`,
             unit: null,
             icon: Coins,
-            themeColor: '#60a5fa',
-            bgGradient: 'linear-gradient(135deg, rgba(59, 130, 246, 0.18), rgba(139, 92, 246, 0.12))',
-            borderColor: 'rgba(59, 130, 246, 0.35)',
-            activeGlow: '0 0 20px -3px rgba(59, 130, 246, 0.3)',
+            themeColor: '#38bdf8',
+            bgGradient: 'linear-gradient(135deg, rgba(56, 189, 248, 0.15), rgba(99, 102, 241, 0.12))',
+            borderColor: 'rgba(56, 189, 248, 0.38)',
+            activeGlow: '0 0 24px -2px rgba(56, 189, 248, 0.35)',
             renderExpanded: () => (
-                <div className="flex flex-col gap-3 pt-3">
+                <div className="flex flex-col gap-3.5 pt-4">
                     {/* Sub-stats Grid */}
-                    <div className="grid grid-cols-3 gap-2">
+                    <div className="grid grid-cols-3 gap-2.5">
                         <StatTile
                             label={`Cost / ${UNIT}`}
                             value={`${CUR}${(totals.cost / totals.km).toFixed(2)}`}
                             highlight
-                            accentColor="#93c5fd"
+                            accentColor="#38bdf8"
                         />
                         <StatTile
                             label="Cost / %"
                             value={`${CUR}${(totals.cost / totals.pct).toFixed(2)}`}
-                            accentColor="#bfdbfe"
+                            accentColor="#818cf8"
                         />
                         <StatTile
                             label="Unit Cost"
                             value={`${CUR}${(totals.cost / totals.kwh).toFixed(2)}`}
                             unit={`${CUR}/kWh`}
-                            accentColor="#93c5fd"
+                            accentColor="#38bdf8"
                         />
                     </div>
 
                     {/* Cost Chart */}
                     <div
-                        className="glass-panel p-3"
-                        style={{ background: 'rgba(0,0,0,0.2)', borderColor: 'rgba(59, 130, 246, 0.2)' }}
+                        className="glass-panel p-3.5 rounded-2xl"
+                        style={{ background: 'rgba(0, 0, 0, 0.25)', borderColor: 'rgba(56, 189, 248, 0.25)' }}
                     >
-                        <div className="flex justify-between items-center mb-2 px-1">
-                            <span style={{ fontSize: '0.7rem', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.05em', color: 'var(--text-secondary)' }}>
+                        <div className="flex justify-between items-center mb-2.5 px-1">
+                            <span style={{ fontSize: '0.72rem', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.05em', color: 'var(--text-secondary)' }}>
                                 Spending History ({CUR})
                             </span>
-                            <span style={{ fontSize: '0.65rem', color: '#93c5fd', fontWeight: 600 }}>
+                            <span style={{ fontSize: '0.7rem', color: '#38bdf8', fontWeight: 700 }}>
                                 {charges.length > 0 ? `Avg: ${CUR}${(stats.totalSpent / charges.length).toFixed(0)}/session` : ''}
                             </span>
                         </div>
-                        <div className="chart-container" style={{ height: '140px' }}>
+                        <div className="chart-container" style={{ height: '145px' }}>
                             {chartData.length > 0 ? (
                                 <ResponsiveContainer width="100%" height="100%">
                                     <BarChart data={chartData} margin={{ top: 5, right: 5, left: -20, bottom: 0 }}>
-                                        <CartesianGrid strokeDasharray="3 3" opacity={0.08} />
+                                        <CartesianGrid strokeDasharray="3 3" opacity={0.12} />
                                         <XAxis dataKey="date" stroke="#94a3b8" fontSize={9} tickLine={false} axisLine={false} />
                                         <YAxis stroke="#94a3b8" fontSize={9} tickLine={false} axisLine={false} tickFormatter={(v) => `${CUR}${v}`} />
                                         <Tooltip contentStyle={tooltipStyle} formatter={(val) => [`${CUR}${val}`, 'Cost']} />
-                                        <Bar dataKey="cost" fill="#38bdf8" radius={[4, 4, 0, 0]} />
+                                        <Bar dataKey="cost" fill="#38bdf8" radius={[5, 5, 0, 0]} />
                                     </BarChart>
                                 </ResponsiveContainer>
                             ) : (
-                                <div className="chart-empty" style={{ minHeight: '140px' }}>No spending data yet 📊</div>
+                                <div className="chart-empty" style={{ minHeight: '145px' }}>No spending data yet 📊</div>
                             )}
                         </div>
                     </div>
@@ -210,52 +211,52 @@ const Dashboard = () => {
             unit: UNIT,
             icon: Activity,
             themeColor: '#34d399',
-            bgGradient: 'linear-gradient(135deg, rgba(16, 185, 129, 0.18), rgba(20, 184, 166, 0.12))',
-            borderColor: 'rgba(16, 185, 129, 0.35)',
-            activeGlow: '0 0 20px -3px rgba(16, 185, 129, 0.3)',
+            bgGradient: 'linear-gradient(135deg, rgba(16, 185, 129, 0.16), rgba(20, 184, 166, 0.12))',
+            borderColor: 'rgba(16, 185, 129, 0.38)',
+            activeGlow: '0 0 24px -2px rgba(16, 185, 129, 0.35)',
             renderExpanded: () => (
-                <div className="flex flex-col gap-3 pt-3">
+                <div className="flex flex-col gap-3.5 pt-4">
                     {/* Sub-stats Grid */}
-                    <div className="grid grid-cols-3 gap-2">
+                    <div className="grid grid-cols-3 gap-2.5">
                         <StatTile
                             label="Total Energy"
                             value={`${stats.totalUnits.toFixed(1)}`}
                             unit="kWh"
                             highlight
-                            accentColor="#6ee7b7"
+                            accentColor="#34d399"
                         />
                         <StatTile
                             label={`Energy / ${UNIT}`}
                             value={`${(totals.kwh / totals.km).toFixed(2)}`}
                             unit={`kWh/${UNIT}`}
-                            accentColor="#a7f3d0"
+                            accentColor="#6ee7b7"
                         />
                         <StatTile
                             label={`Drop / ${UNIT}`}
                             value={`${(totals.pct / totals.km).toFixed(2)}%`}
                             unit={`%/${UNIT}`}
-                            accentColor="#6ee7b7"
+                            accentColor="#34d399"
                         />
                     </div>
 
                     {/* Trip & Energy Summary Card */}
                     <div
-                        className="glass-panel p-3 flex justify-between items-center"
-                        style={{ background: 'rgba(0,0,0,0.2)', borderColor: 'rgba(16, 185, 129, 0.2)' }}
+                        className="glass-panel p-3.5 rounded-2xl flex justify-between items-center"
+                        style={{ background: 'rgba(0, 0, 0, 0.25)', borderColor: 'rgba(16, 185, 129, 0.25)' }}
                     >
                         <div className="flex flex-col">
-                            <span style={{ fontSize: '0.65rem', textTransform: 'uppercase', letterSpacing: '0.05em', color: 'var(--text-secondary)', fontWeight: 600 }}>
+                            <span style={{ fontSize: '0.68rem', textTransform: 'uppercase', letterSpacing: '0.05em', color: 'var(--text-secondary)', fontWeight: 600 }}>
                                 Avg Logged per Session
                             </span>
-                            <span style={{ fontSize: '1rem', fontWeight: 800, color: 'var(--text-primary)' }}>
+                            <span style={{ fontSize: '1.05rem', fontWeight: 800, color: 'var(--text-primary)', marginTop: '2px' }}>
                                 {charges.length > 0 ? (totals.rawKm / charges.length).toFixed(1) : 0} {UNIT}
                             </span>
                         </div>
                         <div className="text-right flex flex-col">
-                            <span style={{ fontSize: '0.65rem', textTransform: 'uppercase', letterSpacing: '0.05em', color: 'var(--text-secondary)', fontWeight: 600 }}>
+                            <span style={{ fontSize: '0.68rem', textTransform: 'uppercase', letterSpacing: '0.05em', color: 'var(--text-secondary)', fontWeight: 600 }}>
                                 Logged Distance Sum
                             </span>
-                            <span style={{ fontSize: '1rem', fontWeight: 800, color: '#34d399' }}>
+                            <span style={{ fontSize: '1.05rem', fontWeight: 800, color: '#34d399', marginTop: '2px' }}>
                                 {totals.rawKm.toLocaleString()} {UNIT}
                             </span>
                         </div>
@@ -271,60 +272,60 @@ const Dashboard = () => {
             unit: `/${UNIT}`,
             icon: TrendingDown,
             themeColor: '#fbbf24',
-            bgGradient: 'linear-gradient(135deg, rgba(245, 158, 11, 0.18), rgba(239, 68, 68, 0.12))',
-            borderColor: 'rgba(245, 158, 11, 0.35)',
-            activeGlow: '0 0 20px -3px rgba(245, 158, 11, 0.3)',
+            bgGradient: 'linear-gradient(135deg, rgba(245, 158, 11, 0.16), rgba(239, 68, 68, 0.12))',
+            borderColor: 'rgba(245, 158, 11, 0.38)',
+            activeGlow: '0 0 24px -2px rgba(245, 158, 11, 0.35)',
             renderExpanded: () => (
-                <div className="flex flex-col gap-3 pt-3">
+                <div className="flex flex-col gap-3.5 pt-4">
                     {/* Sub-stats Grid */}
-                    <div className="grid grid-cols-3 gap-2">
+                    <div className="grid grid-cols-3 gap-2.5">
                         <StatTile
                             label={`${UNIT} / ${CUR}`}
                             value={`${(totals.km / totals.cost).toFixed(2)}`}
                             unit={`${UNIT}/${CUR}`}
                             highlight
-                            accentColor="#fde68a"
+                            accentColor="#fbbf24"
                         />
                         <StatTile
                             label={`kWh / ${CUR}`}
                             value={`${(totals.kwh / totals.cost).toFixed(2)}`}
                             unit={`kWh/${CUR}`}
-                            accentColor="#fef08a"
+                            accentColor="#fde047"
                         />
                         <StatTile
                             label={`Drop / ${CUR}`}
                             value={`${(totals.pct / totals.cost).toFixed(2)}%`}
                             unit={`%/${CUR}`}
-                            accentColor="#fde68a"
+                            accentColor="#fbbf24"
                         />
                     </div>
 
                     {/* Cost Efficiency Chart */}
                     <div
-                        className="glass-panel p-3"
-                        style={{ background: 'rgba(0,0,0,0.2)', borderColor: 'rgba(245, 158, 11, 0.2)' }}
+                        className="glass-panel p-3.5 rounded-2xl"
+                        style={{ background: 'rgba(0, 0, 0, 0.25)', borderColor: 'rgba(245, 158, 11, 0.25)' }}
                     >
-                        <div className="flex justify-between items-center mb-2 px-1">
-                            <span style={{ fontSize: '0.7rem', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.05em', color: 'var(--text-secondary)' }}>
+                        <div className="flex justify-between items-center mb-2.5 px-1">
+                            <span style={{ fontSize: '0.72rem', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.05em', color: 'var(--text-secondary)' }}>
                                 Cost / {UNIT} History ({CUR}/{UNIT})
                             </span>
-                            <span style={{ fontSize: '0.65rem', color: '#fbbf24', fontWeight: 600 }}>
+                            <span style={{ fontSize: '0.7rem', color: '#fbbf24', fontWeight: 700 }}>
                                 Lifetime: {CUR}{efficiency.toFixed(2)}/{UNIT}
                             </span>
                         </div>
-                        <div className="chart-container" style={{ height: '140px' }}>
+                        <div className="chart-container" style={{ height: '145px' }}>
                             {chartData.length > 0 ? (
                                 <ResponsiveContainer width="100%" height="100%">
                                     <AreaChart data={chartData} margin={{ top: 5, right: 5, left: -20, bottom: 0 }}>
-                                        <CartesianGrid strokeDasharray="3 3" opacity={0.08} />
+                                        <CartesianGrid strokeDasharray="3 3" opacity={0.12} />
                                         <XAxis dataKey="date" stroke="#94a3b8" fontSize={9} tickLine={false} axisLine={false} />
                                         <YAxis stroke="#94a3b8" fontSize={9} tickLine={false} axisLine={false} />
                                         <Tooltip contentStyle={tooltipStyle} formatter={(val) => [`${CUR}${val}/${UNIT}`, 'Cost/KM']} />
-                                        <Area type="monotone" dataKey="costEff" stroke="#f59e0b" fill="rgba(245, 158, 11, 0.2)" strokeWidth={2} />
+                                        <Area type="monotone" dataKey="costEff" stroke="#fbbf24" fill="rgba(245, 158, 11, 0.25)" strokeWidth={2.5} />
                                     </AreaChart>
                                 </ResponsiveContainer>
                             ) : (
-                                <div className="chart-empty" style={{ minHeight: '140px' }}>No cost data yet 🚗</div>
+                                <div className="chart-empty" style={{ minHeight: '145px' }}>No cost data yet 🚗</div>
                             )}
                         </div>
                     </div>
@@ -339,60 +340,60 @@ const Dashboard = () => {
             unit: UNIT,
             icon: Navigation,
             themeColor: '#22d3ee',
-            bgGradient: 'linear-gradient(135deg, rgba(6, 182, 212, 0.18), rgba(59, 130, 246, 0.12))',
-            borderColor: 'rgba(6, 182, 212, 0.35)',
-            activeGlow: '0 0 20px -3px rgba(6, 182, 212, 0.3)',
+            bgGradient: 'linear-gradient(135deg, rgba(6, 182, 212, 0.16), rgba(59, 130, 246, 0.12))',
+            borderColor: 'rgba(6, 182, 212, 0.38)',
+            activeGlow: '0 0 24px -2px rgba(6, 182, 212, 0.35)',
             renderExpanded: () => (
-                <div className="flex flex-col gap-3 pt-3">
+                <div className="flex flex-col gap-3.5 pt-4">
                     {/* Sub-stats Grid */}
-                    <div className="grid grid-cols-3 gap-2">
+                    <div className="grid grid-cols-3 gap-2.5">
                         <StatTile
                             label="Range / %"
                             value={`${(totals.km / totals.pct).toFixed(2)}`}
                             unit={`${UNIT}/%`}
                             highlight
-                            accentColor="#a5f3fc"
+                            accentColor="#22d3ee"
                         />
                         <StatTile
                             label="Range / kWh"
                             value={`${(totals.km / totals.kwh).toFixed(2)}`}
                             unit={`${UNIT}/kWh`}
-                            accentColor="#cffafe"
+                            accentColor="#67e8f9"
                         />
                         <StatTile
                             label="Capacity"
                             value={`${(totals.kwh / totals.pct).toFixed(2)}`}
                             unit="kWh/%"
-                            accentColor="#a5f3fc"
+                            accentColor="#22d3ee"
                         />
                     </div>
 
                     {/* Efficiency Chart */}
                     <div
-                        className="glass-panel p-3"
-                        style={{ background: 'rgba(0,0,0,0.2)', borderColor: 'rgba(6, 182, 212, 0.2)' }}
+                        className="glass-panel p-3.5 rounded-2xl"
+                        style={{ background: 'rgba(0, 0, 0, 0.25)', borderColor: 'rgba(6, 182, 212, 0.25)' }}
                     >
-                        <div className="flex justify-between items-center mb-2 px-1">
-                            <span style={{ fontSize: '0.7rem', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.05em', color: 'var(--text-secondary)' }}>
+                        <div className="flex justify-between items-center mb-2.5 px-1">
+                            <span style={{ fontSize: '0.72rem', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.05em', color: 'var(--text-secondary)' }}>
                                 Real-World Efficiency ({UNIT}/kWh)
                             </span>
-                            <span style={{ fontSize: '0.65rem', color: '#22d3ee', fontWeight: 600 }}>
+                            <span style={{ fontSize: '0.7rem', color: '#22d3ee', fontWeight: 700 }}>
                                 Trend
                             </span>
                         </div>
-                        <div className="chart-container" style={{ height: '140px' }}>
+                        <div className="chart-container" style={{ height: '145px' }}>
                             {chartData.length > 0 ? (
                                 <ResponsiveContainer width="100%" height="100%">
                                     <AreaChart data={chartData} margin={{ top: 5, right: 5, left: -20, bottom: 0 }}>
-                                        <CartesianGrid strokeDasharray="3 3" opacity={0.08} />
+                                        <CartesianGrid strokeDasharray="3 3" opacity={0.12} />
                                         <XAxis dataKey="date" stroke="#94a3b8" fontSize={9} tickLine={false} axisLine={false} />
                                         <YAxis stroke="#94a3b8" fontSize={9} tickLine={false} axisLine={false} domain={[0, 'auto']} />
                                         <Tooltip contentStyle={tooltipStyle} formatter={(val) => [`${val} ${UNIT}/kWh`, 'Efficiency']} />
-                                        <Area type="monotone" dataKey="eff" stroke="#06b6d4" fill="rgba(6, 182, 212, 0.2)" strokeWidth={2} />
+                                        <Area type="monotone" dataKey="eff" stroke="#06b6d4" fill="rgba(6, 182, 212, 0.25)" strokeWidth={2.5} />
                                     </AreaChart>
                                 </ResponsiveContainer>
                             ) : (
-                                <div className="chart-empty" style={{ minHeight: '140px' }}>No range data yet 🌱</div>
+                                <div className="chart-empty" style={{ minHeight: '145px' }}>No range data yet 🌱</div>
                             )}
                         </div>
                     </div>
@@ -402,41 +403,66 @@ const Dashboard = () => {
     ];
 
     return (
-        <div className="flex flex-col gap-3 w-full">
-            {/* ── Top Header with Charge Sessions at Top Right ── */}
+        <div className="flex flex-col gap-4 w-full">
+            {/* ── Top Header with Dashboard & Insights Title + Controls ── */}
             <header className="flex justify-between items-center px-1">
                 <div>
                     <h1 style={{ fontSize: 'clamp(1.35rem, 4.5vw, 1.85rem)', lineHeight: 1.15 }}>
                         {settings.carName || 'My EV'}
                     </h1>
-                    <p className="text-xs" style={{ marginTop: '2px', opacity: 0.8 }}>
+                    <p className="text-xs" style={{ marginTop: '2px', opacity: 0.85, fontWeight: 500 }}>
                         Dashboard & Insights
                     </p>
                 </div>
 
-                {/* Top Right Charge Sessions Count Badge */}
-                <motion.button
-                    whileTap={{ scale: 0.94 }}
-                    onClick={() => navigate('/charging')}
-                    className="flex items-center gap-1.5 px-3 py-1.5 rounded-full transition-all"
-                    style={{
-                        background: 'linear-gradient(135deg, rgba(99, 102, 241, 0.22), rgba(16, 185, 129, 0.22))',
-                        border: '1px solid rgba(99, 102, 241, 0.35)',
-                        boxShadow: '0 2px 12px -2px rgba(99, 102, 241, 0.25)',
-                        cursor: 'pointer',
-                    }}
-                    title="View charge sessions"
-                >
-                    <Zap size={13} style={{ color: '#fbbf24', fill: '#fbbf24' }} />
-                    <span style={{
-                        fontSize: 'clamp(0.72rem, 2.4vw, 0.82rem)',
-                        fontWeight: 800,
-                        letterSpacing: '0.02em',
-                        color: 'var(--text-primary)'
-                    }}>
-                        {charges.length} {charges.length === 1 ? 'Session' : 'Sessions'}
-                    </span>
-                </motion.button>
+                {/* Right controls: Session Count Badge & Expand/Collapse All */}
+                <div className="flex items-center gap-2">
+                    <motion.button
+                        whileTap={{ scale: 0.94 }}
+                        onClick={toggleAllBars}
+                        className="flex items-center gap-1.5 px-3 py-1.5 rounded-full transition-all"
+                        style={{
+                            background: 'rgba(255, 255, 255, 0.08)',
+                            border: '1px solid var(--glass-border)',
+                            color: 'var(--color-primary)',
+                            cursor: 'pointer',
+                            minHeight: '34px',
+                        }}
+                        title={areAllExpanded ? 'Collapse All' : 'Expand All'}
+                    >
+                        <Layers size={13} />
+                        <span style={{
+                            fontSize: 'clamp(0.7rem, 2.3vw, 0.78rem)',
+                            fontWeight: 700,
+                        }}>
+                            {areAllExpanded ? 'Collapse All' : 'Expand All'}
+                        </span>
+                    </motion.button>
+
+                    <motion.button
+                        whileTap={{ scale: 0.94 }}
+                        onClick={() => navigate('/charging')}
+                        className="flex items-center gap-1.5 px-3 py-1.5 rounded-full transition-all"
+                        style={{
+                            background: 'linear-gradient(135deg, rgba(99, 102, 241, 0.22), rgba(16, 185, 129, 0.22))',
+                            border: '1px solid rgba(99, 102, 241, 0.35)',
+                            boxShadow: '0 2px 12px -2px rgba(99, 102, 241, 0.25)',
+                            cursor: 'pointer',
+                            minHeight: '34px',
+                        }}
+                        title="View charge sessions"
+                    >
+                        <Zap size={13} style={{ color: '#fbbf24', fill: '#fbbf24' }} />
+                        <span style={{
+                            fontSize: 'clamp(0.72rem, 2.4vw, 0.82rem)',
+                            fontWeight: 800,
+                            letterSpacing: '0.02em',
+                            color: 'var(--text-primary)'
+                        }}>
+                            {charges.length} {charges.length === 1 ? 'Session' : 'Sessions'}
+                        </span>
+                    </motion.button>
+                </div>
             </header>
 
             {/* ── First-time User Onboarding Nudge (if 0 sessions) ── */}
@@ -467,29 +493,8 @@ const Dashboard = () => {
                 </motion.div>
             )}
 
-            {/* ── Expand/Collapse All Mini Control ── */}
-            <div className="flex justify-between items-center px-1">
-                <span style={{ fontSize: '0.68rem', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.06em', color: 'var(--text-secondary)', opacity: 0.8 }}>
-                    Primary Metrics
-                </span>
-                <button
-                    onClick={toggleAllBars}
-                    className="flex items-center gap-1 text-xs transition-opacity hover:opacity-100"
-                    style={{
-                        fontSize: '0.68rem',
-                        fontWeight: 700,
-                        color: 'var(--color-primary)',
-                        opacity: 0.85,
-                        padding: '2px 6px',
-                    }}
-                >
-                    <Layers size={11} />
-                    <span>{areAllExpanded ? 'Collapse All' : 'Expand All'}</span>
-                </button>
-            </div>
-
-            {/* ── 4 Stacked Horizontal Expandable Bars (No-Scroll in default collapsed state) ── */}
-            <div className="flex flex-col gap-2.5">
+            {/* ── 4 Stacked Horizontal Expandable Bars (Taller, spacious, large numbers) ── */}
+            <div className="flex flex-col gap-3.5">
                 {bars.map((bar, index) => {
                     const isExpanded = !!expandedBars[bar.id];
                     const Icon = bar.icon;
@@ -506,23 +511,23 @@ const Dashboard = () => {
                                 borderColor: isExpanded ? bar.themeColor : bar.borderColor,
                                 borderWidth: '1px',
                                 boxShadow: isExpanded ? bar.activeGlow : 'var(--shadow-soft)',
-                                padding: '0.65rem 0.85rem',
-                                borderRadius: '16px',
+                                padding: '1rem 1.15rem',
+                                borderRadius: '20px',
                             }}
                         >
-                            {/* ── Bar Header (Clickable to Toggle Accordion) ── */}
+                            {/* ── Bar Header (Clickable to Toggle Accordion, 50%+ Taller) ── */}
                             <div
                                 onClick={() => toggleBar(bar.id)}
                                 className="flex justify-between items-center cursor-pointer select-none"
-                                style={{ minHeight: '44px' }}
+                                style={{ minHeight: '68px' }}
                             >
-                                {/* Left: Icon + Compact Intuitive Heading */}
-                                <div className="flex items-center gap-2.5 min-w-0 pr-2">
+                                {/* Left: Icon + Clean Bold Title & Subtitle */}
+                                <div className="flex items-center gap-3 min-w-0 pr-2">
                                     <div
                                         style={{
-                                            padding: '7px',
-                                            borderRadius: '10px',
-                                            backgroundColor: 'rgba(0, 0, 0, 0.2)',
+                                            padding: '10px',
+                                            borderRadius: '14px',
+                                            backgroundColor: 'rgba(0, 0, 0, 0.25)',
                                             border: `1px solid ${bar.borderColor}`,
                                             color: bar.themeColor,
                                             display: 'flex',
@@ -531,16 +536,16 @@ const Dashboard = () => {
                                             flexShrink: 0,
                                         }}
                                     >
-                                        <Icon size={16} />
+                                        <Icon size={20} />
                                     </div>
                                     <div className="flex flex-col min-w-0">
                                         <span style={{
-                                            fontSize: '0.68rem',
+                                            fontSize: 'clamp(0.78rem, 2.5vw, 0.88rem)',
                                             fontWeight: 700,
                                             textTransform: 'uppercase',
-                                            letterSpacing: '0.05em',
+                                            letterSpacing: '0.04em',
                                             color: 'var(--text-secondary)',
-                                            lineHeight: 1.2,
+                                            lineHeight: 1.25,
                                             overflow: 'hidden',
                                             textOverflow: 'ellipsis',
                                             whiteSpace: 'nowrap',
@@ -548,24 +553,25 @@ const Dashboard = () => {
                                             {bar.title}
                                         </span>
                                         <span style={{
-                                            fontSize: '0.58rem',
+                                            fontSize: 'clamp(0.66rem, 2.1vw, 0.74rem)',
                                             fontWeight: 500,
                                             color: 'var(--text-secondary)',
-                                            opacity: 0.65,
-                                            lineHeight: 1.1,
+                                            opacity: 0.75,
+                                            lineHeight: 1.2,
+                                            marginTop: '2px',
                                         }}>
                                             {bar.subLabel}
                                         </span>
                                     </div>
                                 </div>
 
-                                {/* Right: Big Highlighted Number + Unit + Chevron Indicator */}
-                                <div className="flex items-center gap-2 flex-shrink-0 text-right">
+                                {/* Right: Prominent Large Number + Unit + Animated Chevron */}
+                                <div className="flex items-center gap-2.5 flex-shrink-0 text-right">
                                     <div className="flex items-baseline gap-1">
                                         <span style={{
-                                            fontSize: 'clamp(1.15rem, 4.2vw, 1.55rem)',
+                                            fontSize: 'clamp(1.5rem, 5.2vw, 2.1rem)',
                                             fontWeight: 800,
-                                            letterSpacing: '-0.02em',
+                                            letterSpacing: '-0.03em',
                                             color: 'var(--text-primary)',
                                             lineHeight: 1,
                                         }}>
@@ -573,10 +579,10 @@ const Dashboard = () => {
                                         </span>
                                         {bar.unit && (
                                             <span style={{
-                                                fontSize: '0.7rem',
+                                                fontSize: 'clamp(0.75rem, 2.4vw, 0.88rem)',
                                                 fontWeight: 700,
                                                 color: 'var(--text-secondary)',
-                                                opacity: 0.8,
+                                                opacity: 0.85,
                                                 textTransform: 'uppercase',
                                             }}>
                                                 {bar.unit}
@@ -593,10 +599,11 @@ const Dashboard = () => {
                                             display: 'flex',
                                             alignItems: 'center',
                                             justifyContent: 'center',
-                                            opacity: 0.7,
+                                            opacity: 0.8,
+                                            marginLeft: '4px',
                                         }}
                                     >
-                                        <ChevronDown size={17} />
+                                        <ChevronDown size={19} />
                                     </motion.div>
                                 </div>
                             </div>
@@ -611,7 +618,7 @@ const Dashboard = () => {
                                         transition={{ duration: 0.22, ease: 'easeInOut' }}
                                         style={{ overflow: 'hidden' }}
                                     >
-                                        <hr style={{ borderColor: 'rgba(255, 255, 255, 0.08)', margin: '0.5rem 0 0 0' }} />
+                                        <hr style={{ borderColor: 'rgba(255, 255, 255, 0.1)', margin: '0.75rem 0 0 0' }} />
                                         {bar.renderExpanded()}
                                     </motion.div>
                                 )}
