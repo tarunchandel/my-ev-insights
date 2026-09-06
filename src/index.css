@@ -55,6 +55,14 @@
   --navbar-height: 72px;
   --navbar-bottom-buffer: calc(1.25rem + env(safe-area-inset-bottom));
 
+  /* Dashboard inner card tokens */
+  --card-inner-bg: rgba(99, 102, 241, 0.06);
+  --card-inner-border: rgba(99, 102, 241, 0.15);
+  --card-inner-shadow: 0 2px 8px rgba(99, 102, 241, 0.08);
+  --card-inner-shadow-highlight: 0 0 16px -2px rgba(99, 102, 241, 0.18);
+  --icon-container-bg: rgba(99, 102, 241, 0.08);
+  --grid-stroke: rgba(99, 102, 241, 0.12);
+
   color-scheme: light;
 }
 
@@ -83,6 +91,14 @@
 
   --shadow-soft: 0 4px 30px -4px rgba(167, 139, 250, 0.2);
   --shadow-glow: 0 0 40px -5px rgba(167, 139, 250, 0.4);
+
+  /* Dashboard inner card tokens — dark */
+  --card-inner-bg: rgba(15, 23, 42, 0.65);
+  --card-inner-border: rgba(167, 139, 250, 0.18);
+  --card-inner-shadow: 0 2px 8px rgba(0, 0, 0, 0.25);
+  --card-inner-shadow-highlight: 0 0 16px -2px rgba(167, 139, 250, 0.25);
+  --icon-container-bg: rgba(15, 23, 42, 0.55);
+  --grid-stroke: #64748b;
 
   color-scheme: dark;
 }

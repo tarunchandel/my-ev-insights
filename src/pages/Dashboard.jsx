@@ -10,6 +10,46 @@ import {
     ResponsiveContainer, AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, BarChart, Bar
 } from 'recharts';
 
+// Sub-tile helper component — extracted outside Dashboard to prevent remounting on every render
+const StatTile = ({ label, value, unit, highlight = false, accentColor = 'var(--color-primary)' }) => (
+    <div
+        className="flex flex-col justify-center items-center text-center transition-all"
+        style={{
+            background: 'var(--card-inner-bg)',
+            backdropFilter: 'blur(10px)',
+            WebkitBackdropFilter: 'blur(10px)',
+            borderColor: highlight ? accentColor : 'var(--card-inner-border)',
+            borderWidth: '1px',
+            borderStyle: 'solid',
+            padding: '0.85rem 0.5rem',
+            minHeight: '82px',
+            borderRadius: '16px',
+            boxShadow: highlight ? 'var(--card-inner-shadow-highlight)' : 'var(--card-inner-shadow)',
+        }}
+    >
+        <div style={{
+            fontSize: 'clamp(1.2rem, 4vw, 1.55rem)',
+            fontWeight: 800,
+            color: accentColor,
+            lineHeight: 1.15,
+            letterSpacing: '-0.02em',
+        }}>
+            {value}
+        </div>
+        <div style={{
+            fontSize: '0.7rem',
+            fontWeight: 700,
+            textTransform: 'uppercase',
+            letterSpacing: '0.04em',
+            color: 'var(--text-secondary)',
+            marginTop: '5px',
+            lineHeight: 1.2,
+        }}>
+            {label} {unit && <span style={{ opacity: 0.75 }}>({unit})</span>}
+        </div>
+    </div>
+);
+
 const Dashboard = () => {
     const { stats, charges, settings } = useApp();
     const [expandedBars, setExpandedBars] = useState({});
@@ -101,46 +141,6 @@ const Dashboard = () => {
         boxShadow: '0 8px 24px rgba(0,0,0,0.4)',
     };
 
-    // Sub-tile helper component with high-contrast, crisp typography and clear backgrounds
-    const StatTile = ({ label, value, unit, highlight = false, accentColor = '#38bdf8', bgBorder = 'rgba(255,255,255,0.15)' }) => (
-        <div
-            className="flex flex-col justify-center items-center text-center transition-all"
-            style={{
-                background: 'rgba(15, 23, 42, 0.65)',
-                backdropFilter: 'blur(10px)',
-                WebkitBackdropFilter: 'blur(10px)',
-                borderColor: highlight ? accentColor : bgBorder,
-                borderWidth: '1px',
-                borderStyle: 'solid',
-                padding: '0.85rem 0.5rem',
-                minHeight: '82px',
-                borderRadius: '16px',
-                boxShadow: highlight ? `0 0 16px -2px ${accentColor}35` : '0 2px 8px rgba(0,0,0,0.25)',
-            }}
-        >
-            <div style={{
-                fontSize: 'clamp(1.2rem, 4vw, 1.55rem)',
-                fontWeight: 800,
-                color: accentColor,
-                lineHeight: 1.15,
-                letterSpacing: '-0.02em',
-            }}>
-                {value}
-            </div>
-            <div style={{
-                fontSize: '0.7rem',
-                fontWeight: 700,
-                textTransform: 'uppercase',
-                letterSpacing: '0.04em',
-                color: '#e2e8f0',
-                marginTop: '5px',
-                lineHeight: 1.2,
-            }}>
-                {label} {unit && <span style={{ color: '#94a3b8', fontWeight: 600 }}>({unit})</span>}
-            </div>
-        </div>
-    );
-
     // Definition of the 4 Stacked Horizontal Bars with vibrant, high-contrast themes
     const bars = [
         {
@@ -163,20 +163,17 @@ const Dashboard = () => {
                             value={`${CUR}${(totals.cost / totals.km).toFixed(2)}`}
                             highlight
                             accentColor="#38bdf8"
-                            bgBorder="rgba(56, 189, 248, 0.3)"
                         />
                         <StatTile
                             label="Cost / %"
                             value={`${CUR}${(totals.cost / totals.pct).toFixed(2)}`}
-                            accentColor="#a5b4fc"
-                            bgBorder="rgba(165, 180, 252, 0.25)"
+                            accentColor="#818cf8"
                         />
                         <StatTile
                             label="Unit Cost"
                             value={`${CUR}${(totals.cost / totals.kwh).toFixed(2)}`}
                             unit={`${CUR}/kWh`}
                             accentColor="#38bdf8"
-                            bgBorder="rgba(56, 189, 248, 0.3)"
                         />
                     </div>
 
@@ -184,8 +181,8 @@ const Dashboard = () => {
                     <div
                         className="p-4 rounded-2xl"
                         style={{
-                            background: 'rgba(15, 23, 42, 0.65)',
-                            borderColor: 'rgba(56, 189, 248, 0.3)',
+                            background: 'var(--card-inner-bg)',
+                            borderColor: 'rgba(56, 189, 248, 0.25)',
                             borderWidth: '1px',
                             borderStyle: 'solid',
                             backdropFilter: 'blur(10px)',
@@ -193,7 +190,7 @@ const Dashboard = () => {
                         }}
                     >
                         <div className="flex justify-between items-center mb-3 px-1">
-                            <span style={{ fontSize: '0.75rem', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.05em', color: '#e2e8f0' }}>
+                            <span style={{ fontSize: '0.75rem', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.05em', color: 'var(--text-secondary)' }}>
                                 Spending History ({CUR})
                             </span>
                             <span style={{ fontSize: '0.75rem', color: '#38bdf8', fontWeight: 800 }}>
@@ -204,15 +201,15 @@ const Dashboard = () => {
                             {chartData.length > 0 ? (
                                 <ResponsiveContainer width="100%" height="100%">
                                     <BarChart data={chartData} margin={{ top: 5, right: 5, left: -20, bottom: 0 }}>
-                                        <CartesianGrid strokeDasharray="3 3" opacity={0.15} stroke="#64748b" />
-                                        <XAxis dataKey="date" stroke="#94a3b8" fontSize={10} tickLine={false} axisLine={false} />
-                                        <YAxis stroke="#94a3b8" fontSize={10} tickLine={false} axisLine={false} tickFormatter={(v) => `${CUR}${v}`} />
+                                        <CartesianGrid strokeDasharray="3 3" opacity={0.15} stroke="var(--grid-stroke)" />
+                                        <XAxis dataKey="date" stroke="var(--text-secondary)" fontSize={10} tickLine={false} axisLine={false} />
+                                        <YAxis stroke="var(--text-secondary)" fontSize={10} tickLine={false} axisLine={false} tickFormatter={(v) => `${CUR}${v}`} />
                                         <Tooltip contentStyle={tooltipStyle} formatter={(val) => [`${CUR}${val}`, 'Cost']} />
                                         <Bar dataKey="cost" fill="#38bdf8" radius={[6, 6, 0, 0]} />
                                     </BarChart>
                                 </ResponsiveContainer>
                             ) : (
-                                <div className="chart-empty" style={{ minHeight: '155px', color: '#94a3b8' }}>No spending data yet 📊</div>
+                                <div className="chart-empty" style={{ minHeight: '155px' }}>No spending data yet 📊</div>
                             )}
                         </div>
                     </div>
@@ -240,21 +237,18 @@ const Dashboard = () => {
                             unit="kWh"
                             highlight
                             accentColor="#34d399"
-                            bgBorder="rgba(52, 211, 153, 0.3)"
                         />
                         <StatTile
                             label={`Energy / ${UNIT}`}
                             value={`${(totals.kwh / totals.km).toFixed(2)}`}
                             unit={`kWh/${UNIT}`}
                             accentColor="#6ee7b7"
-                            bgBorder="rgba(110, 231, 183, 0.25)"
                         />
                         <StatTile
                             label={`Drop / ${UNIT}`}
                             value={`${(totals.pct / totals.km).toFixed(2)}%`}
                             unit={`%/${UNIT}`}
                             accentColor="#34d399"
-                            bgBorder="rgba(52, 211, 153, 0.3)"
                         />
                     </div>
 
@@ -262,8 +256,8 @@ const Dashboard = () => {
                     <div
                         className="p-4 rounded-2xl flex justify-between items-center"
                         style={{
-                            background: 'rgba(15, 23, 42, 0.65)',
-                            borderColor: 'rgba(16, 185, 129, 0.3)',
+                            background: 'var(--card-inner-bg)',
+                            borderColor: 'rgba(16, 185, 129, 0.25)',
                             borderWidth: '1px',
                             borderStyle: 'solid',
                             backdropFilter: 'blur(10px)',
@@ -271,15 +265,15 @@ const Dashboard = () => {
                         }}
                     >
                         <div className="flex flex-col">
-                            <span style={{ fontSize: '0.72rem', textTransform: 'uppercase', letterSpacing: '0.05em', color: '#cbd5e1', fontWeight: 700 }}>
+                            <span style={{ fontSize: '0.72rem', textTransform: 'uppercase', letterSpacing: '0.05em', color: 'var(--text-secondary)', fontWeight: 700 }}>
                                 Avg Logged per Session
                             </span>
-                            <span style={{ fontSize: '1.15rem', fontWeight: 800, color: '#ffffff', marginTop: '3px' }}>
+                            <span style={{ fontSize: '1.15rem', fontWeight: 800, color: 'var(--text-primary)', marginTop: '3px' }}>
                                 {charges.length > 0 ? (totals.rawKm / charges.length).toFixed(1) : 0} {UNIT}
                             </span>
                         </div>
                         <div className="text-right flex flex-col">
-                            <span style={{ fontSize: '0.72rem', textTransform: 'uppercase', letterSpacing: '0.05em', color: '#cbd5e1', fontWeight: 700 }}>
+                            <span style={{ fontSize: '0.72rem', textTransform: 'uppercase', letterSpacing: '0.05em', color: 'var(--text-secondary)', fontWeight: 700 }}>
                                 Logged Distance Sum
                             </span>
                             <span style={{ fontSize: '1.15rem', fontWeight: 800, color: '#34d399', marginTop: '3px' }}>
@@ -311,21 +305,18 @@ const Dashboard = () => {
                             unit={`${UNIT}/${CUR}`}
                             highlight
                             accentColor="#fbbf24"
-                            bgBorder="rgba(251, 191, 36, 0.3)"
                         />
                         <StatTile
                             label={`kWh / ${CUR}`}
                             value={`${(totals.kwh / totals.cost).toFixed(2)}`}
                             unit={`kWh/${CUR}`}
                             accentColor="#fde047"
-                            bgBorder="rgba(253, 224, 71, 0.25)"
                         />
                         <StatTile
                             label={`Drop / ${CUR}`}
                             value={`${(totals.pct / totals.cost).toFixed(2)}%`}
                             unit={`%/${CUR}`}
                             accentColor="#fbbf24"
-                            bgBorder="rgba(251, 191, 36, 0.3)"
                         />
                     </div>
 
@@ -333,8 +324,8 @@ const Dashboard = () => {
                     <div
                         className="p-4 rounded-2xl"
                         style={{
-                            background: 'rgba(15, 23, 42, 0.65)',
-                            borderColor: 'rgba(245, 158, 11, 0.3)',
+                            background: 'var(--card-inner-bg)',
+                            borderColor: 'rgba(245, 158, 11, 0.25)',
                             borderWidth: '1px',
                             borderStyle: 'solid',
                             backdropFilter: 'blur(10px)',
@@ -342,7 +333,7 @@ const Dashboard = () => {
                         }}
                     >
                         <div className="flex justify-between items-center mb-3 px-1">
-                            <span style={{ fontSize: '0.75rem', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.05em', color: '#e2e8f0' }}>
+                            <span style={{ fontSize: '0.75rem', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.05em', color: 'var(--text-secondary)' }}>
                                 Cost / {UNIT} History ({CUR}/{UNIT})
                             </span>
                             <span style={{ fontSize: '0.75rem', color: '#fbbf24', fontWeight: 800 }}>
@@ -353,15 +344,15 @@ const Dashboard = () => {
                             {chartData.length > 0 ? (
                                 <ResponsiveContainer width="100%" height="100%">
                                     <AreaChart data={chartData} margin={{ top: 5, right: 5, left: -20, bottom: 0 }}>
-                                        <CartesianGrid strokeDasharray="3 3" opacity={0.15} stroke="#64748b" />
-                                        <XAxis dataKey="date" stroke="#94a3b8" fontSize={10} tickLine={false} axisLine={false} />
-                                        <YAxis stroke="#94a3b8" fontSize={10} tickLine={false} axisLine={false} />
+                                        <CartesianGrid strokeDasharray="3 3" opacity={0.15} stroke="var(--grid-stroke)" />
+                                        <XAxis dataKey="date" stroke="var(--text-secondary)" fontSize={10} tickLine={false} axisLine={false} />
+                                        <YAxis stroke="var(--text-secondary)" fontSize={10} tickLine={false} axisLine={false} />
                                         <Tooltip contentStyle={tooltipStyle} formatter={(val) => [`${CUR}${val}/${UNIT}`, 'Cost/KM']} />
                                         <Area type="monotone" dataKey="costEff" stroke="#fbbf24" fill="rgba(245, 158, 11, 0.3)" strokeWidth={2.5} />
                                     </AreaChart>
                                 </ResponsiveContainer>
                             ) : (
-                                <div className="chart-empty" style={{ minHeight: '155px', color: '#94a3b8' }}>No cost data yet 🚗</div>
+                                <div className="chart-empty" style={{ minHeight: '155px' }}>No cost data yet 🚗</div>
                             )}
                         </div>
                     </div>
@@ -389,21 +380,18 @@ const Dashboard = () => {
                             unit={`${UNIT}/%`}
                             highlight
                             accentColor="#22d3ee"
-                            bgBorder="rgba(34, 211, 238, 0.3)"
                         />
                         <StatTile
                             label="Range / kWh"
                             value={`${(totals.km / totals.kwh).toFixed(2)}`}
                             unit={`${UNIT}/kWh`}
                             accentColor="#67e8f9"
-                            bgBorder="rgba(103, 232, 249, 0.25)"
                         />
                         <StatTile
                             label="Capacity"
                             value={`${(totals.kwh / totals.pct).toFixed(2)}`}
                             unit="kWh/%"
                             accentColor="#22d3ee"
-                            bgBorder="rgba(34, 211, 238, 0.3)"
                         />
                     </div>
 
@@ -411,8 +399,8 @@ const Dashboard = () => {
                     <div
                         className="p-4 rounded-2xl"
                         style={{
-                            background: 'rgba(15, 23, 42, 0.65)',
-                            borderColor: 'rgba(6, 182, 212, 0.3)',
+                            background: 'var(--card-inner-bg)',
+                            borderColor: 'rgba(6, 182, 212, 0.25)',
                             borderWidth: '1px',
                             borderStyle: 'solid',
                             backdropFilter: 'blur(10px)',
@@ -420,7 +408,7 @@ const Dashboard = () => {
                         }}
                     >
                         <div className="flex justify-between items-center mb-3 px-1">
-                            <span style={{ fontSize: '0.75rem', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.05em', color: '#e2e8f0' }}>
+                            <span style={{ fontSize: '0.75rem', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.05em', color: 'var(--text-secondary)' }}>
                                 Real-World Efficiency ({UNIT}/kWh)
                             </span>
                             <span style={{ fontSize: '0.75rem', color: '#22d3ee', fontWeight: 800 }}>
@@ -431,15 +419,15 @@ const Dashboard = () => {
                             {chartData.length > 0 ? (
                                 <ResponsiveContainer width="100%" height="100%">
                                     <AreaChart data={chartData} margin={{ top: 5, right: 5, left: -20, bottom: 0 }}>
-                                        <CartesianGrid strokeDasharray="3 3" opacity={0.15} stroke="#64748b" />
-                                        <XAxis dataKey="date" stroke="#94a3b8" fontSize={10} tickLine={false} axisLine={false} />
-                                        <YAxis stroke="#94a3b8" fontSize={10} tickLine={false} axisLine={false} domain={[0, 'auto']} />
+                                        <CartesianGrid strokeDasharray="3 3" opacity={0.15} stroke="var(--grid-stroke)" />
+                                        <XAxis dataKey="date" stroke="var(--text-secondary)" fontSize={10} tickLine={false} axisLine={false} />
+                                        <YAxis stroke="var(--text-secondary)" fontSize={10} tickLine={false} axisLine={false} domain={[0, 'auto']} />
                                         <Tooltip contentStyle={tooltipStyle} formatter={(val) => [`${val} ${UNIT}/kWh`, 'Efficiency']} />
                                         <Area type="monotone" dataKey="eff" stroke="#06b6d4" fill="rgba(6, 182, 212, 0.3)" strokeWidth={2.5} />
                                     </AreaChart>
                                 </ResponsiveContainer>
                             ) : (
-                                <div className="chart-empty" style={{ minHeight: '155px', color: '#94a3b8' }}>No range data yet 🌱</div>
+                                <div className="chart-empty" style={{ minHeight: '155px' }}>No range data yet 🌱</div>
                             )}
                         </div>
                     </div>
@@ -453,7 +441,7 @@ const Dashboard = () => {
             {/* ── Page Header: Dashboard & Insights directly + Aligned Action Buttons ── */}
             <header className="flex justify-between items-center px-1 pb-1">
                 <div>
-                    <h1 style={{ fontSize: 'clamp(1.4rem, 4.6vw, 1.95rem)', fontWeight: 800, lineHeight: 1.15, color: 'var(--text-primary)' }}>
+                    <h1 style={{ fontSize: 'clamp(1.4rem, 4.6vw, 1.95rem)', fontWeight: 800, lineHeight: 1.15 }}>
                         Dashboard & Insights
                     </h1>
                     {settings.carName && (
@@ -558,7 +546,7 @@ const Dashboard = () => {
                                 background: bar.bgGradient,
                                 borderColor: isExpanded ? bar.themeColor : bar.borderColor,
                                 borderWidth: '1.5px',
-                                boxShadow: isExpanded ? bar.activeGlow : '0 4px 20px -4px rgba(0, 0, 0, 0.2)',
+                                boxShadow: isExpanded ? bar.activeGlow : 'var(--shadow-soft)',
                                 padding: '1.25rem 1.35rem',
                                 borderRadius: '22px',
                             }}
@@ -575,14 +563,13 @@ const Dashboard = () => {
                                         style={{
                                             padding: '12px',
                                             borderRadius: '16px',
-                                            backgroundColor: 'rgba(15, 23, 42, 0.55)',
+                                            backgroundColor: 'var(--icon-container-bg)',
                                             border: `1px solid ${bar.borderColor}`,
                                             color: bar.themeColor,
                                             display: 'flex',
                                             alignItems: 'center',
                                             justifyContent: 'center',
                                             flexShrink: 0,
-                                            boxShadow: `0 2px 10px -2px ${bar.themeColor}33`,
                                         }}
                                     >
                                         <Icon size={22} />
@@ -667,7 +654,7 @@ const Dashboard = () => {
                                         transition={{ duration: 0.22, ease: 'easeInOut' }}
                                         style={{ overflow: 'hidden' }}
                                     >
-                                        <hr style={{ borderColor: 'rgba(255, 255, 255, 0.12)', margin: '0.85rem 0 0 0' }} />
+                                        <hr style={{ borderColor: 'var(--glass-border)', margin: '0.85rem 0 0 0' }} />
                                         {bar.renderExpanded()}
                                     </motion.div>
                                 )}
@@ -681,4 +668,3 @@ const Dashboard = () => {
 };
 
 export default Dashboard;
-
