@@ -203,7 +203,7 @@ const Charging = () => {
                 ? 'linear-gradient(135deg, rgba(16,185,129,0.08), rgba(52,211,153,0.12))'
                 : 'linear-gradient(135deg, rgba(59,130,246,0.08), rgba(96,165,250,0.12))';
             const accentBorder = isHome ? 'rgba(16,185,129,0.2)' : 'rgba(59,130,246,0.2)';
-            const locationLabel = isHome ? 'Mahavitran' : (charge.type || 'Public');
+
 
             const rows = [
                 `<div style="display:flex;justify-content:space-between;align-items:center;padding:0.4rem 0;font-size:0.8rem;"><span style="color:#6b7280;font-weight:500;">📅 Date</span><span style="font-weight:600;color:#1a1a2e;">${dateStr}</span></div>`,
@@ -214,7 +214,6 @@ const Charging = () => {
                 rows.push(`<div style="display:flex;justify-content:space-between;align-items:center;padding:0.4rem 0;font-size:0.8rem;"><span style="color:#6b7280;font-weight:500;">🕐 End Time</span><span style="font-weight:600;color:#1a1a2e;">${charge.endTime}</span></div>`);
             }
 
-            rows.push(`<div style="display:flex;justify-content:space-between;align-items:center;padding:0.4rem 0;font-size:0.8rem;"><span style="color:#6b7280;font-weight:500;">📍 Location</span><span style="font-weight:600;color:#1a1a2e;">${locationLabel}</span></div>`);
             rows.push(`<div style="display:flex;justify-content:space-between;align-items:center;padding:0.4rem 0;font-size:0.8rem;"><span style="color:#6b7280;font-weight:500;">⚡ Current Type</span><span style="font-weight:600;color:#1a1a2e;">${charge.acDc || 'AC'}</span></div>`);
 
             if (charge.power) {
@@ -234,15 +233,7 @@ const Charging = () => {
 
             const energyRow = `<div style="display:flex;justify-content:space-between;align-items:center;padding:0.4rem 0;font-size:0.8rem;"><span style="color:#6b7280;font-weight:500;">⚡ Energy Consumed</span><span style="font-weight:600;color:#1a1a2e;">${charge.units || 0} kWh</span></div>`;
 
-            let meterRow = '';
-            if (charge.startUnits || charge.endUnits) {
-                meterRow = `<div style="display:flex;justify-content:space-between;align-items:center;padding:0.4rem 0;font-size:0.8rem;"><span style="color:#6b7280;font-weight:500;">📊 Meter Reading</span><span style="font-weight:600;color:#1a1a2e;">${charge.startUnits || '—'} → ${charge.endUnits || '—'} kWh</span></div>`;
-            }
 
-            let odometerRow = '';
-            if (charge.odometer) {
-                odometerRow = `<div style="display:flex;justify-content:space-between;align-items:center;padding:0.4rem 0;font-size:0.8rem;"><span style="color:#6b7280;font-weight:500;">📊 Odometer</span><span style="font-weight:600;color:#1a1a2e;">${charge.odometer} ${settings.distanceUnit}</span></div>`;
-            }
 
             let drivenRow = '';
             if (charge.drivenKm > 0) {
@@ -259,6 +250,7 @@ const Charging = () => {
                     <div style="text-align:center;margin-bottom:1.25rem;">
                         <h2 style="font-size:1.25rem;font-weight:700;letter-spacing:-0.02em;margin:0 0 0.35rem;color:#1a1a2e;">Charging Session Receipt</h2>
                         <div style="font-size:0.65rem;color:#9ca3af;font-family:monospace;text-align:center;letter-spacing:0.08em;margin-top:0.25rem;background:rgba(0,0,0,0.03);padding:0.25rem 0.5rem;border-radius:4px;display:inline-block;">${receiptId}</div>
+                        ${charge.note ? `<div style="font-size:0.8rem;color:#6b7280;margin-top:0.5rem;font-weight:400;">${charge.note}</div>` : ''}
                     </div>
 
                     <hr style="border:none;border-top:2px dashed rgba(0,0,0,0.1);margin:1rem 0;" />
@@ -269,8 +261,6 @@ const Charging = () => {
 
                     ${batterySection}
                     ${energyRow}
-                    ${meterRow}
-                    ${odometerRow}
                     ${drivenRow}
 
                     <hr style="border:none;border-top:2px dashed rgba(0,0,0,0.1);margin:1rem 0;" />
@@ -662,14 +652,16 @@ const Charging = () => {
 
                                 {/* Header */}
                                 <div className="receipt-header">
-                                    <div className={`receipt-logo ${selectedCharge.type === 'Home' ? 'home' : 'public'}`}>
-                                        {selectedCharge.type === 'Home' ? '🏠' : '⚡'}
-                                    </div>
                                     <h3 className="receipt-title">
                                         {getDisplayCompany(selectedCharge)} Charging
                                     </h3>
                                     <p className="receipt-subtitle">Charging Session Receipt</p>
                                     <div className="receipt-id">{generateReceiptId(selectedCharge)}</div>
+                                    {selectedCharge.note && (
+                                        <p style={{ fontSize: '0.8rem', color: 'var(--text-secondary)', marginTop: '0.5rem', fontWeight: 400 }}>
+                                            {selectedCharge.note}
+                                        </p>
+                                    )}
                                 </div>
 
                                 <hr className="receipt-divider" />
@@ -699,11 +691,6 @@ const Charging = () => {
                                         <span className="receipt-row-value">{selectedCharge.endTime}</span>
                                     </div>
                                 )}
-
-                                <div className="receipt-row">
-                                    <span className="receipt-row-label"><MapPin size={12} /> Location</span>
-                                    <span className="receipt-row-value">{selectedCharge.type === 'Home' ? 'Mahavitran' : selectedCharge.type}</span>
-                                </div>
 
                                 <div className="receipt-row">
                                     <span className="receipt-row-label"><Zap size={12} /> Current Type</span>
@@ -753,22 +740,6 @@ const Charging = () => {
                                     <span className="receipt-row-value">{selectedCharge.units || 0} kWh</span>
                                 </div>
 
-                                {(selectedCharge.startUnits || selectedCharge.endUnits) && (
-                                    <div className="receipt-row">
-                                        <span className="receipt-row-label"><Activity size={12} /> Meter Reading</span>
-                                        <span className="receipt-row-value">
-                                            {selectedCharge.startUnits || '—'} → {selectedCharge.endUnits || '—'} kWh
-                                        </span>
-                                    </div>
-                                )}
-
-                                {selectedCharge.odometer && (
-                                    <div className="receipt-row">
-                                        <span className="receipt-row-label"><Activity size={12} /> Odometer</span>
-                                        <span className="receipt-row-value">{selectedCharge.odometer} {settings.distanceUnit}</span>
-                                    </div>
-                                )}
-
                                 {selectedCharge.drivenKm > 0 && (
                                     <div className="receipt-row">
                                         <span className="receipt-row-label"><MapPin size={12} /> Distance Driven</span>
@@ -791,16 +762,6 @@ const Charging = () => {
                                     )}
                                 </div>
 
-                                {/* Note */}
-                                {selectedCharge.note && (
-                                    <>
-                                        <hr className="receipt-divider" />
-                                        <div className="receipt-note">
-                                            <FileText size={11} style={{ display: 'inline', verticalAlign: 'middle', marginRight: '4px' }} />
-                                            {selectedCharge.note}
-                                        </div>
-                                    </>
-                                )}
 
                                 {/* Footer */}
                                 <hr className="receipt-divider" />

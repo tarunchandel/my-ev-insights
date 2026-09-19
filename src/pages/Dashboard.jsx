@@ -57,7 +57,6 @@ const Dashboard = () => {
 
     const CUR = settings.currency || '₹';
     const UNIT = (settings.distanceUnit || 'km').toUpperCase();
-    const efficiency = stats.totalKms > 0 ? (stats.totalSpent / stats.totalKms) : 0;
 
     // Toggle single bar expansion
     const toggleBar = (id) => {
@@ -87,44 +86,45 @@ const Dashboard = () => {
 
     // --- Calculated Totals ---
     const totals = useMemo(() => {
+        // Distance travelled refers to the latest odometer reading
+        const sorted = [...charges].sort((a, b) => (b.timestamp || 0) - (a.timestamp || 0));
+        const latestWithOdo = sorted.find(c => c.odometer && parseFloat(c.odometer) > 0);
+        const latestOdometer = latestWithOdo ? (parseFloat(latestWithOdo.odometer) || 0) : (stats.totalKms || 0);
+
         const acc = charges.reduce((sum, c) => ({
-            km: sum.km + (parseFloat(c.drivenKm) || 0),
             pct: sum.pct + ((parseFloat(c.batteryPct) || 0) - (parseFloat(c.startPct) || 0)),
             kwh: sum.kwh + (parseFloat(c.units) || 0),
             cost: sum.cost + (parseFloat(c.cost) || 0),
-        }), { km: 0, pct: 0, kwh: 0, cost: 0 });
+        }), { pct: 0, kwh: 0, cost: 0 });
 
         return {
-            km: acc.km || 1,
-            pct: acc.pct || 1,
-            kwh: acc.kwh || 1,
-            cost: acc.cost || 1,
-            rawKm: acc.km,
-            rawPct: acc.pct,
-            rawKwh: acc.kwh,
-            rawCost: acc.cost,
+            km: latestOdometer,
+            pct: acc.pct,
+            kwh: acc.kwh,
+            cost: acc.cost,
         };
-    }, [charges]);
+    }, [charges, stats.totalKms]);
+
+    const efficiency = totals.km > 0 ? (totals.cost / totals.km) : 0;
 
     // --- Avg Range for 100% charge ---
     const avgRange100 = useMemo(() => {
-        const raw = charges.reduce((acc, c) => ({
-            km: acc.km + (parseFloat(c.drivenKm) || 0),
-            pct: acc.pct + ((parseFloat(c.batteryPct) || 0) - (parseFloat(c.startPct) || 0)),
-        }), { km: 0, pct: 0 });
-        return raw.pct > 0 ? ((raw.km / raw.pct) * 100) : 0;
-    }, [charges]);
+        return totals.pct > 0 ? ((totals.km / totals.pct) * 100) : 0;
+    }, [totals]);
 
     // --- Chart Data ---
     const chartData = useMemo(() => {
         const sorted = [...charges].sort((a, b) => (a.timestamp || 0) - (b.timestamp || 0));
         return sorted.map(c => {
-            const eff = c.drivenKm > 0 && c.units > 0 ? (c.drivenKm / c.units) : 0;
-            const costEff = c.drivenKm > 0 ? (c.cost / c.drivenKm) : 0;
+            const drivenKm = parseFloat(c.drivenKm) || 0;
+            const units = parseFloat(c.units) || 0;
+            const cost = parseFloat(c.cost) || 0;
+            const eff = drivenKm > 0 && units > 0 ? (drivenKm / units) : 0;
+            const costEff = drivenKm > 0 && cost > 0 ? (cost / drivenKm) : 0;
             return {
                 date: new Date(c.timestamp).toLocaleDateString('en-GB', { day: '2-digit', month: 'short' }),
-                cost: Number(c.cost || 0),
-                km: Number(c.drivenKm || 0),
+                cost,
+                km: drivenKm,
                 eff: Number(eff.toFixed(1)),
                 costEff: Number(costEff.toFixed(2)),
             };
@@ -147,7 +147,7 @@ const Dashboard = () => {
             id: 'spent',
             title: 'Money Spent',
             subLabel: 'Total Till Date',
-            value: `${CUR}${stats.totalSpent.toLocaleString()}`,
+            value: `${CUR}${totals.cost.toLocaleString()}`,
             unit: null,
             icon: Coins,
             themeColor: '#38bdf8',
@@ -160,18 +160,18 @@ const Dashboard = () => {
                     <div className="grid grid-cols-3 gap-3">
                         <StatTile
                             label={`Cost / ${UNIT}`}
-                            value={`${CUR}${(totals.cost / totals.km).toFixed(2)}`}
+                            value={totals.km > 0 ? `${CUR}${(totals.cost / totals.km).toFixed(2)}` : '—'}
                             highlight
                             accentColor="#38bdf8"
                         />
                         <StatTile
                             label="Cost / %"
-                            value={`${CUR}${(totals.cost / totals.pct).toFixed(2)}`}
+                            value={totals.pct > 0 ? `${CUR}${(totals.cost / totals.pct).toFixed(2)}` : '—'}
                             accentColor="#818cf8"
                         />
                         <StatTile
                             label="Unit Cost"
-                            value={`${CUR}${(totals.cost / totals.kwh).toFixed(2)}`}
+                            value={totals.kwh > 0 ? `${CUR}${(totals.cost / totals.kwh).toFixed(2)}` : '—'}
                             unit={`${CUR}/kWh`}
                             accentColor="#38bdf8"
                         />
@@ -194,7 +194,7 @@ const Dashboard = () => {
                                 Spending History ({CUR})
                             </span>
                             <span style={{ fontSize: '0.75rem', color: '#38bdf8', fontWeight: 800 }}>
-                                {charges.length > 0 ? `Avg: ${CUR}${(stats.totalSpent / charges.length).toFixed(0)}/session` : ''}
+                                {charges.length > 0 ? `Avg: ${CUR}${(totals.cost / charges.length).toFixed(0)}/session` : ''}
                             </span>
                         </div>
                         <div className="chart-container" style={{ height: '155px' }}>
@@ -220,7 +220,7 @@ const Dashboard = () => {
             id: 'distance',
             title: 'Distance Travelled',
             subLabel: 'Total Till Date',
-            value: `${stats.totalKms.toLocaleString()}`,
+            value: `${totals.km.toLocaleString()}`,
             unit: UNIT,
             icon: Activity,
             themeColor: '#34d399',
@@ -233,20 +233,20 @@ const Dashboard = () => {
                     <div className="grid grid-cols-3 gap-3">
                         <StatTile
                             label="Total Energy"
-                            value={`${stats.totalUnits.toFixed(1)}`}
+                            value={`${totals.kwh.toFixed(1)}`}
                             unit="kWh"
                             highlight
                             accentColor="#34d399"
                         />
                         <StatTile
                             label={`Energy / ${UNIT}`}
-                            value={`${(totals.kwh / totals.km).toFixed(2)}`}
+                            value={totals.km > 0 ? `${(totals.kwh / totals.km).toFixed(2)}` : '—'}
                             unit={`kWh/${UNIT}`}
                             accentColor="#6ee7b7"
                         />
                         <StatTile
                             label={`Drop / ${UNIT}`}
-                            value={`${(totals.pct / totals.km).toFixed(2)}%`}
+                            value={totals.km > 0 ? `${(totals.pct / totals.km).toFixed(2)}%` : '—'}
                             unit={`%/${UNIT}`}
                             accentColor="#34d399"
                         />
@@ -266,18 +266,18 @@ const Dashboard = () => {
                     >
                         <div className="flex flex-col">
                             <span style={{ fontSize: '0.72rem', textTransform: 'uppercase', letterSpacing: '0.05em', color: 'var(--text-secondary)', fontWeight: 700 }}>
-                                Avg Logged per Session
+                                Avg Distance per Session
                             </span>
                             <span style={{ fontSize: '1.15rem', fontWeight: 800, color: 'var(--text-primary)', marginTop: '3px' }}>
-                                {charges.length > 0 ? (totals.rawKm / charges.length).toFixed(1) : 0} {UNIT}
+                                {charges.length > 0 ? (totals.km / charges.length).toFixed(1) : 0} {UNIT}
                             </span>
                         </div>
                         <div className="text-right flex flex-col">
                             <span style={{ fontSize: '0.72rem', textTransform: 'uppercase', letterSpacing: '0.05em', color: 'var(--text-secondary)', fontWeight: 700 }}>
-                                Logged Distance Sum
+                                Latest Odometer
                             </span>
                             <span style={{ fontSize: '1.15rem', fontWeight: 800, color: '#34d399', marginTop: '3px' }}>
-                                {totals.rawKm.toLocaleString()} {UNIT}
+                                {totals.km.toLocaleString()} {UNIT}
                             </span>
                         </div>
                     </div>
@@ -286,7 +286,7 @@ const Dashboard = () => {
         },
         {
             id: 'costPerKm',
-            title: 'Average Rupee / KM',
+            title: `Average ${CUR} / ${UNIT}`,
             subLabel: 'Running Cost Efficiency',
             value: `${CUR}${efficiency.toFixed(2)}`,
             unit: `/${UNIT}`,
@@ -301,20 +301,20 @@ const Dashboard = () => {
                     <div className="grid grid-cols-3 gap-3">
                         <StatTile
                             label={`${UNIT} / ${CUR}`}
-                            value={`${(totals.km / totals.cost).toFixed(2)}`}
+                            value={totals.cost > 0 ? `${(totals.km / totals.cost).toFixed(2)}` : '—'}
                             unit={`${UNIT}/${CUR}`}
                             highlight
                             accentColor="#fbbf24"
                         />
                         <StatTile
                             label={`kWh / ${CUR}`}
-                            value={`${(totals.kwh / totals.cost).toFixed(2)}`}
+                            value={totals.cost > 0 ? `${(totals.kwh / totals.cost).toFixed(2)}` : '—'}
                             unit={`kWh/${CUR}`}
                             accentColor="#fde047"
                         />
                         <StatTile
                             label={`Drop / ${CUR}`}
-                            value={`${(totals.pct / totals.cost).toFixed(2)}%`}
+                            value={totals.cost > 0 ? `${(totals.pct / totals.cost).toFixed(2)}%` : '—'}
                             unit={`%/${CUR}`}
                             accentColor="#fbbf24"
                         />
@@ -347,7 +347,7 @@ const Dashboard = () => {
                                         <CartesianGrid strokeDasharray="3 3" opacity={0.15} stroke="var(--grid-stroke)" />
                                         <XAxis dataKey="date" stroke="var(--text-secondary)" fontSize={10} tickLine={false} axisLine={false} />
                                         <YAxis stroke="var(--text-secondary)" fontSize={10} tickLine={false} axisLine={false} />
-                                        <Tooltip contentStyle={tooltipStyle} formatter={(val) => [`${CUR}${val}/${UNIT}`, 'Cost/KM']} />
+                                        <Tooltip contentStyle={tooltipStyle} formatter={(val) => [`${CUR}${val}/${UNIT}`, `Cost/${UNIT}`]} />
                                         <Area type="monotone" dataKey="costEff" stroke="#fbbf24" fill="rgba(245, 158, 11, 0.3)" strokeWidth={2.5} />
                                     </AreaChart>
                                 </ResponsiveContainer>
@@ -376,20 +376,20 @@ const Dashboard = () => {
                     <div className="grid grid-cols-3 gap-3">
                         <StatTile
                             label="Range / %"
-                            value={`${(totals.km / totals.pct).toFixed(2)}`}
+                            value={totals.pct > 0 ? `${(totals.km / totals.pct).toFixed(2)}` : '—'}
                             unit={`${UNIT}/%`}
                             highlight
                             accentColor="#22d3ee"
                         />
                         <StatTile
                             label="Range / kWh"
-                            value={`${(totals.km / totals.kwh).toFixed(2)}`}
+                            value={totals.kwh > 0 ? `${(totals.km / totals.kwh).toFixed(2)}` : '—'}
                             unit={`${UNIT}/kWh`}
                             accentColor="#67e8f9"
                         />
                         <StatTile
                             label="Capacity"
-                            value={`${(totals.kwh / totals.pct).toFixed(2)}`}
+                            value={totals.pct > 0 ? `${(totals.kwh / totals.pct).toFixed(2)}` : '—'}
                             unit="kWh/%"
                             accentColor="#22d3ee"
                         />

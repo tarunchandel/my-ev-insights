@@ -88,7 +88,8 @@ export const AppProvider = ({ children }) => {
 
         // Total distance = latest odometer reading (sorted by timestamp descending)
         const sorted = [...charges].sort((a, b) => (b.timestamp || 0) - (a.timestamp || 0));
-        const totalKms = sorted.length > 0 ? (parseFloat(sorted[0].odometer) || 0) : 0;
+        const latestWithOdo = sorted.find(c => c.odometer && parseFloat(c.odometer) > 0);
+        const totalKms = latestWithOdo ? (parseFloat(latestWithOdo.odometer) || 0) : 0;
 
         return { totalSpent, totalKms, totalUnits };
     }, [charges]);
