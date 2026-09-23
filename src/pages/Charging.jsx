@@ -189,6 +189,16 @@ const Charging = () => {
         setIsExporting(true);
 
         // Build receipt HTML
+        // Inline SVG icons matching Lucide icons used in the on-screen receipt
+            const svgIcons = {
+                calendar: '<svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0;"><rect width="18" height="18" x="3" y="4" rx="2" ry="2"/><line x1="16" x2="16" y1="2" y2="6"/><line x1="8" x2="8" y1="2" y2="6"/><line x1="3" x2="21" y1="10" y2="10"/></svg>',
+                clock: '<svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0;"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>',
+                zap: '<svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0;"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>',
+                gauge: '<svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0;"><path d="m12 14 4-4"/><path d="M3.34 19a10 10 0 1 1 17.32 0"/></svg>',
+                battery: '<svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0;"><rect width="16" height="10" x="2" y="7" rx="2" ry="2"/><line x1="22" x2="22" y1="11" y2="13"/><line x1="10" x2="10" y1="10" y2="14"/><line x1="6" x2="14" y1="12" y2="12"/></svg>',
+                mapPin: '<svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0;"><path d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0Z"/><circle cx="12" cy="10" r="3"/></svg>',
+            };
+
         const receiptHtmls = selected.map(charge => {
             const receiptId = generateReceiptId(charge);
             const dateStr = new Date(charge.timestamp).toLocaleDateString('en-GB', {
@@ -204,40 +214,43 @@ const Charging = () => {
                 : 'linear-gradient(135deg, rgba(59,130,246,0.08), rgba(96,165,250,0.12))';
             const accentBorder = isHome ? 'rgba(16,185,129,0.2)' : 'rgba(59,130,246,0.2)';
 
+            // Row helper matching on-screen receipt-row styling
+            const makeRow = (icon, label, value) => `<div style="display:flex;justify-content:space-between;align-items:center;padding:0.4rem 0;font-size:0.8rem;"><span style="color:#6b7280;font-weight:500;display:flex;align-items:center;gap:0.4rem;">${icon} ${label}</span><span style="font-weight:600;color:#1a1a2e;text-align:right;">${value}</span></div>`;
 
             const rows = [
-                `<div style="display:flex;justify-content:space-between;align-items:center;padding:0.4rem 0;font-size:0.8rem;"><span style="color:#6b7280;font-weight:500;">📅 Date</span><span style="font-weight:600;color:#1a1a2e;">${dateStr}</span></div>`,
-                `<div style="display:flex;justify-content:space-between;align-items:center;padding:0.4rem 0;font-size:0.8rem;"><span style="color:#6b7280;font-weight:500;">🕐 Start Time</span><span style="font-weight:600;color:#1a1a2e;">${timeStr}</span></div>`,
+                makeRow(svgIcons.calendar, 'Date', dateStr),
+                makeRow(svgIcons.clock, 'Start Time', timeStr),
             ];
 
             if (charge.endTime) {
-                rows.push(`<div style="display:flex;justify-content:space-between;align-items:center;padding:0.4rem 0;font-size:0.8rem;"><span style="color:#6b7280;font-weight:500;">🕐 End Time</span><span style="font-weight:600;color:#1a1a2e;">${charge.endTime}</span></div>`);
+                rows.push(makeRow(svgIcons.clock, 'End Time', charge.endTime));
             }
 
-            rows.push(`<div style="display:flex;justify-content:space-between;align-items:center;padding:0.4rem 0;font-size:0.8rem;"><span style="color:#6b7280;font-weight:500;">⚡ Current Type</span><span style="font-weight:600;color:#1a1a2e;">${charge.acDc || 'AC'}</span></div>`);
+            rows.push(makeRow(svgIcons.zap, 'Current Type', charge.acDc || 'AC'));
 
             if (charge.power) {
-                rows.push(`<div style="display:flex;justify-content:space-between;align-items:center;padding:0.4rem 0;font-size:0.8rem;"><span style="color:#6b7280;font-weight:500;">⚡ Power</span><span style="font-weight:600;color:#1a1a2e;">${charge.power} kW</span></div>`);
+                rows.push(makeRow(svgIcons.gauge, 'Power', `${charge.power} kW`));
             }
 
             let batterySection = '';
             if (charge.startPct || charge.batteryPct) {
+                const batteryPct = Math.min(charge.batteryPct || 0, 100);
+                const startPct = Math.min(charge.startPct || 0, 100);
                 batterySection = `
-                    <div style="display:flex;justify-content:space-between;align-items:center;padding:0.4rem 0;font-size:0.8rem;"><span style="color:#6b7280;font-weight:500;">🔋 Battery</span><span style="font-weight:600;color:#1a1a2e;">${charge.startPct || '0'}% → ${charge.batteryPct || '—'}%</span></div>
+                    ${makeRow(svgIcons.battery, 'Battery', `${charge.startPct || '0'}% → ${charge.batteryPct || '—'}%`)}
                     <div style="height:8px;border-radius:4px;background:rgba(0,0,0,0.06);position:relative;overflow:hidden;margin:0.5rem 0;">
-                        <div style="height:100%;border-radius:4px;position:absolute;left:0;top:0;width:${Math.min(charge.batteryPct || 0, 100)}%;background:linear-gradient(90deg,#34d399,#10b981);"></div>
+                        <div style="height:100%;border-radius:4px;position:absolute;left:0;top:0;width:${batteryPct}%;background:rgba(148,163,184,0.4);"></div>
+                        <div style="height:100%;border-radius:4px;position:absolute;left:0;top:0;width:${batteryPct}%;background:linear-gradient(90deg,#34d399,#10b981);"></div>
                     </div>
                     <div style="display:flex;justify-content:space-between;font-size:0.65rem;color:#9ca3af;margin-top:0.25rem;"><span>${charge.startPct || 0}%</span><span>${charge.batteryPct || 0}%</span></div>
                 `;
             }
 
-            const energyRow = `<div style="display:flex;justify-content:space-between;align-items:center;padding:0.4rem 0;font-size:0.8rem;"><span style="color:#6b7280;font-weight:500;">⚡ Energy Consumed</span><span style="font-weight:600;color:#1a1a2e;">${charge.units || 0} kWh</span></div>`;
-
-
+            const energyRow = makeRow(svgIcons.zap, 'Energy Consumed', `${charge.units || 0} kWh`);
 
             let drivenRow = '';
             if (charge.drivenKm > 0) {
-                drivenRow = `<div style="display:flex;justify-content:space-between;align-items:center;padding:0.4rem 0;font-size:0.8rem;"><span style="color:#6b7280;font-weight:500;">📍 Distance Driven</span><span style="font-weight:600;color:#1a1a2e;">${charge.drivenKm} ${settings.distanceUnit}</span></div>`;
+                drivenRow = makeRow(svgIcons.mapPin, 'Distance Driven', `${charge.drivenKm} ${settings.distanceUnit}`);
             }
 
             const costPerKwh = (charge.units > 0 && charge.cost > 0)
@@ -245,12 +258,12 @@ const Charging = () => {
                 : '';
 
             return `
-                <div style="background:#fefefe;color:#1a1a2e;padding:1.75rem 1.5rem 1.5rem;border:2px solid rgba(0,0,0,0.12);border-radius:4px;font-family:'Outfit',system-ui,sans-serif;max-width:380px;margin:0 auto;page-break-inside:avoid;break-inside:avoid;">
+                <div style="background:#fefefe;color:#1a1a2e;padding:1.75rem 1.5rem 1.5rem;border:2px solid rgba(0,0,0,0.12);border-radius:4px;font-family:'Outfit',monospace,system-ui,sans-serif;max-width:380px;margin:0 auto;page-break-inside:avoid;break-inside:avoid;">
                     <!-- Header -->
                     <div style="text-align:center;margin-bottom:1.25rem;">
-                        <h2 style="font-size:1.25rem;font-weight:700;letter-spacing:-0.02em;margin:0 0 0.35rem;color:#1a1a2e;">Charging Session Receipt</h2>
+                        <h3 style="font-size:1.1rem;font-weight:700;letter-spacing:-0.02em;margin:0;color:#1a1a2e;">${getDisplayCompany(charge)} Charging</h3>
+                        <p style="font-size:0.7rem;color:#9ca3af;text-transform:uppercase;letter-spacing:0.1em;margin-top:0.25rem;margin-bottom:0;">Charging Session Receipt</p>
                         <div style="font-size:0.65rem;color:#9ca3af;font-family:monospace;text-align:center;letter-spacing:0.08em;margin-top:0.25rem;background:rgba(0,0,0,0.03);padding:0.25rem 0.5rem;border-radius:4px;display:inline-block;">${receiptId}</div>
-                        ${charge.note ? `<div style="font-size:0.8rem;color:#6b7280;margin-top:0.5rem;font-weight:400;">${charge.note}</div>` : ''}
                     </div>
 
                     <hr style="border:none;border-top:2px dashed rgba(0,0,0,0.1);margin:1rem 0;" />
@@ -282,8 +295,8 @@ const Charging = () => {
 
                     <!-- Footnotes -->
                     <div style="margin-top:0.75rem;padding-top:0.5rem;display:flex;flex-direction:column;gap:0.25rem;">
-                        <div style="font-size:0.55rem;color:#9ca3af;text-align:center;letter-spacing:0.02em;line-height:1.4;"><sup style="font-size:0.45rem;font-weight:700;color:#a78bfa;margin-right:0.15rem;">1</sup> Paid directly to the charging company</div>
-                        <div style="font-size:0.55rem;color:#9ca3af;text-align:center;letter-spacing:0.02em;line-height:1.4;"><sup style="font-size:0.45rem;font-weight:700;color:#a78bfa;margin-right:0.15rem;">2</sup> Billing info service managed by My EV Insights</div>
+                        <div style="font-size:0.6rem;color:#9ca3af;text-align:center;display:flex;align-items:center;justify-content:center;gap:0.25rem;letter-spacing:0.02em;line-height:1.4;"><sup style="font-size:0.5rem;font-weight:700;color:#a78bfa;margin-right:0.15rem;">1</sup> Paid directly to the charging company</div>
+                        <div style="font-size:0.6rem;color:#9ca3af;text-align:center;display:flex;align-items:center;justify-content:center;gap:0.25rem;letter-spacing:0.02em;line-height:1.4;"><sup style="font-size:0.5rem;font-weight:700;color:#a78bfa;margin-right:0.15rem;">2</sup> Billing info service managed by My EV Insights</div>
                     </div>
                 </div>
             `;
