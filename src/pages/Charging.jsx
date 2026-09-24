@@ -237,7 +237,7 @@ const Charging = () => {
                 const batteryPct = Math.min(charge.batteryPct || 0, 100);
                 const startPct = Math.min(charge.startPct || 0, 100);
                 batterySection = `
-                    ${makeRow(svgIcons.battery, 'Battery', `${charge.startPct || '0'}% → ${charge.batteryPct || '—'}%`)}
+                    ${makeRow(svgIcons.battery, 'Battery SoC', `${charge.startPct || '0'}% → ${charge.batteryPct || '—'}%`)}
                     <div style="height:8px;border-radius:4px;background:rgba(0,0,0,0.06);position:relative;overflow:hidden;margin:0.5rem 0;">
                         <div style="height:100%;border-radius:4px;position:absolute;left:0;top:0;width:${batteryPct}%;background:rgba(148,163,184,0.4);"></div>
                         <div style="height:100%;border-radius:4px;position:absolute;left:0;top:0;width:${batteryPct}%;background:linear-gradient(90deg,#34d399,#10b981);"></div>
@@ -261,8 +261,8 @@ const Charging = () => {
                 <div style="background:#fefefe;color:#1a1a2e;padding:1.75rem 1.5rem 1.5rem;border:2px solid rgba(0,0,0,0.12);border-radius:4px;font-family:'Outfit',monospace,system-ui,sans-serif;max-width:380px;margin:0 auto;page-break-inside:avoid;break-inside:avoid;">
                     <!-- Header -->
                     <div style="text-align:center;margin-bottom:1.25rem;">
-                        <h3 style="font-size:1.1rem;font-weight:700;letter-spacing:-0.02em;margin:0;color:#1a1a2e;">${getDisplayCompany(charge)} Charging</h3>
-                        <p style="font-size:0.7rem;color:#9ca3af;text-transform:uppercase;letter-spacing:0.1em;margin-top:0.25rem;margin-bottom:0;">Charging Session Receipt</p>
+                        <h3 style="font-size:1.1rem;font-weight:700;letter-spacing:-0.02em;margin:0;color:#1a1a2e;">${getDisplayCompany(charge)} EV Charging</h3>
+                        <p style="font-size:0.7rem;color:#9ca3af;text-transform:uppercase;letter-spacing:0.1em;margin-top:0.25rem;margin-bottom:0;">EV Charging Session Receipt</p>
                         <div style="font-size:0.65rem;color:#9ca3af;font-family:monospace;text-align:center;letter-spacing:0.08em;margin-top:0.25rem;background:rgba(0,0,0,0.03);padding:0.25rem 0.5rem;border-radius:4px;display:inline-block;">${receiptId}</div>
                     </div>
 
@@ -442,7 +442,7 @@ const Charging = () => {
                     {/* Charger Info */}
                     <div className="grid grid-cols-2 gap-3">
                         <label className="flex flex-col gap-1">
-                            <span className="form-label">Charger / Company</span>
+                            <span className="form-label">Charger</span>
                             <input type="text" name="company" placeholder="e.g. Shell Recharge" value={formData.company} onChange={handleChange} />
                         </label>
                         <div className="flex flex-col gap-1">
@@ -666,9 +666,9 @@ const Charging = () => {
                                 {/* Header */}
                                 <div className="receipt-header">
                                     <h3 className="receipt-title">
-                                        {getDisplayCompany(selectedCharge)} Charging
+                                        {getDisplayCompany(selectedCharge)} EV Charging
                                     </h3>
-                                    <p className="receipt-subtitle">Charging Session Receipt</p>
+                                    <p className="receipt-subtitle">EV Charging Session Receipt</p>
                                     <div className="receipt-id">{generateReceiptId(selectedCharge)}</div>
                                     {selectedCharge.note && (
                                         <p style={{ fontSize: '0.8rem', color: 'var(--text-secondary)', marginTop: '0.5rem', fontWeight: 400 }}>
@@ -723,7 +723,7 @@ const Charging = () => {
                                 {(selectedCharge.startPct || selectedCharge.batteryPct) && (
                                     <>
                                         <div className="receipt-row">
-                                            <span className="receipt-row-label"><BatteryCharging size={12} /> Battery</span>
+                                            <span className="receipt-row-label"><BatteryCharging size={12} /> Battery SoC</span>
                                             <span className="receipt-row-value">
                                                 {selectedCharge.startPct || '0'}% → {selectedCharge.batteryPct || '—'}%
                                             </span>
