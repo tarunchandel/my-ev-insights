@@ -50,8 +50,41 @@ const StatTile = ({ label, value, unit, highlight = false, accentColor = 'var(--
     </div>
 );
 
+// Formula breakdown helper — shows the component values that make up a heading value
+const FormulaBreakdown = ({ items, accentColor = 'var(--text-secondary)' }) => (
+    <div
+        style={{
+            display: 'flex',
+            flexWrap: 'wrap',
+            alignItems: 'center',
+            gap: '6px 10px',
+            padding: '8px 12px',
+            marginTop: '8px',
+            borderRadius: '12px',
+            background: 'var(--card-inner-bg)',
+            border: '1px solid var(--card-inner-border)',
+            fontSize: '0.72rem',
+            lineHeight: 1.3,
+        }}
+    >
+        {items.map((item, i) => (
+            <React.Fragment key={i}>
+                {i > 0 && item.operator && (
+                    <span style={{ fontWeight: 800, color: accentColor, fontSize: '0.8rem', opacity: 0.7 }}>
+                        {item.operator}
+                    </span>
+                )}
+                <span style={{ display: 'inline-flex', alignItems: 'baseline', gap: '3px' }}>
+                    <span style={{ fontWeight: 700, color: 'var(--text-primary)' }}>{item.value}</span>
+                    <span style={{ fontWeight: 600, color: 'var(--text-secondary)', opacity: 0.75, fontSize: '0.66rem', textTransform: 'uppercase' }}>{item.label}</span>
+                </span>
+            </React.Fragment>
+        ))}
+    </div>
+);
+
 const Dashboard = () => {
-    const { stats, charges, settings } = useApp();
+    const { stats, charges, settings, expenses } = useApp();
     const [expandedBars, setExpandedBars] = useState({});
     const navigate = useNavigate();
 
@@ -105,6 +138,26 @@ const Dashboard = () => {
         };
     }, [charges, stats.totalKms]);
 
+    // --- Cost breakdowns by category ---
+    const costBreakdown = useMemo(() => {
+        const homeCost = charges
+            .filter(c => c.type === 'Home')
+            .reduce((s, c) => s + (parseFloat(c.cost) || 0), 0);
+        const publicCost = charges
+            .filter(c => c.type !== 'Home')
+            .reduce((s, c) => s + (parseFloat(c.cost) || 0), 0);
+        const maintenanceCost = (expenses || []).reduce((s, e) => s + (Number(e.amount) || 0), 0);
+
+        // Per-category maintenance breakdown
+        const byCat = (expenses || []).reduce((acc, e) => {
+            const cat = e.category || 'Other';
+            acc[cat] = (acc[cat] || 0) + (Number(e.amount) || 0);
+            return acc;
+        }, {});
+
+        return { homeCost, publicCost, maintenanceCost, byCat };
+    }, [charges, expenses]);
+
     const efficiency = totals.km > 0 ? (totals.cost / totals.km) : 0;
 
     // --- Avg Range for 100% charge ---
@@ -147,13 +200,26 @@ const Dashboard = () => {
             id: 'spent',
             title: 'Money Spent',
             subLabel: 'Total Till Date',
-            value: `${CUR}${totals.cost.toLocaleString()}`,
+            value: `${CUR}${(totals.cost + costBreakdown.maintenanceCost).toLocaleString()}`,
             unit: null,
             icon: Coins,
             themeColor: '#38bdf8',
             bgGradient: 'linear-gradient(135deg, rgba(56, 189, 248, 0.18), rgba(99, 102, 241, 0.14))',
             borderColor: 'rgba(56, 189, 248, 0.45)',
             activeGlow: '0 0 28px -2px rgba(56, 189, 248, 0.4)',
+            formulaBreakdown: () => {
+                const items = [
+                    { value: `${CUR}${costBreakdown.homeCost.toLocaleString()}`, label: 'Home Charging', operator: null },
+                    { value: `${CUR}${costBreakdown.publicCost.toLocaleString()}`, label: 'Public Charging', operator: '+' },
+                ];
+                if (costBreakdown.maintenanceCost > 0) {
+                    // Show total maintenance + per-category details
+                    Object.entries(costBreakdown.byCat).forEach(([cat, amt]) => {
+                        items.push({ value: `${CUR}${amt.toLocaleString()}`, label: cat, operator: '+' });
+                    });
+                }
+                return <FormulaBreakdown items={items} accentColor="#38bdf8" />;
+            },
             renderExpanded: () => (
                 <div className="flex flex-col gap-4 pt-4">
                     {/* Sub-stats Grid */}
@@ -227,6 +293,7 @@ const Dashboard = () => {
             bgGradient: 'linear-gradient(135deg, rgba(16, 185, 129, 0.18), rgba(20, 184, 166, 0.14))',
             borderColor: 'rgba(16, 185, 129, 0.45)',
             activeGlow: '0 0 28px -2px rgba(16, 185, 129, 0.4)',
+            formulaBreakdown: null,
             renderExpanded: () => (
                 <div className="flex flex-col gap-4 pt-4">
                     {/* Sub-stats Grid */}
@@ -295,6 +362,16 @@ const Dashboard = () => {
             bgGradient: 'linear-gradient(135deg, rgba(245, 158, 11, 0.18), rgba(239, 68, 68, 0.14))',
             borderColor: 'rgba(245, 158, 11, 0.45)',
             activeGlow: '0 0 28px -2px rgba(245, 158, 11, 0.4)',
+            formulaBreakdown: () => (
+                <FormulaBreakdown
+                    items={[
+                        { value: `${CUR}${totals.cost.toLocaleString()}`, label: 'Total Cost', operator: null },
+                        { value: `${totals.km.toLocaleString()} ${UNIT}`, label: 'Total Distance', operator: '÷' },
+                        { value: `${CUR}${efficiency.toFixed(2)}/${UNIT}`, label: 'Result', operator: '=' },
+                    ]}
+                    accentColor="#fbbf24"
+                />
+            ),
             renderExpanded: () => (
                 <div className="flex flex-col gap-4 pt-4">
                     {/* Sub-stats Grid */}
@@ -370,6 +447,17 @@ const Dashboard = () => {
             bgGradient: 'linear-gradient(135deg, rgba(6, 182, 212, 0.18), rgba(59, 130, 246, 0.14))',
             borderColor: 'rgba(6, 182, 212, 0.45)',
             activeGlow: '0 0 28px -2px rgba(6, 182, 212, 0.4)',
+            formulaBreakdown: () => (
+                <FormulaBreakdown
+                    items={[
+                        { value: `${totals.km.toLocaleString()} ${UNIT}`, label: 'Total Distance', operator: null },
+                        { value: `${totals.pct.toFixed(1)}%`, label: 'Total Battery Charged', operator: '÷' },
+                        { value: '100', label: '× Scale', operator: '×' },
+                        { value: `${avgRange100.toFixed(0)} ${UNIT}`, label: 'Result', operator: '=' },
+                    ]}
+                    accentColor="#22d3ee"
+                />
+            ),
             renderExpanded: () => (
                 <div className="flex flex-col gap-4 pt-4">
                     {/* Sub-stats Grid */}
@@ -643,6 +731,9 @@ const Dashboard = () => {
                                     </motion.div>
                                 </div>
                             </div>
+
+                            {/* ── Formula Breakdown (always visible below heading) ── */}
+                            {bar.formulaBreakdown && bar.formulaBreakdown()}
 
                             {/* ── Expandable Content Area (Sub-stats + Charts) ── */}
                             <AnimatePresence>

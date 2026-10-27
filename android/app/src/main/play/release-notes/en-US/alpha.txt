@@ -1,4 +1,3 @@
-• Clarified battery charging metrics with "Battery SoC" (State of Charge) label.
-• Polished EV Charging session receipt headers and branding consistency.
-• Streamlined charging session entry form labels.
-• Performance and UI refinements.
+• Added formula and component breakdowns for Total Spent, Efficiency, and Estimated Range on Dashboard.
+• Included vehicle maintenance expenses in total money spent calculations.
+• UI refinements and performance improvements.
